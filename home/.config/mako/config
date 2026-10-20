@@ -1,0 +1,20 @@
+# Cyber-Arch — portado do estilo do swaync
+font=JetBrainsMono Nerd Font 11
+background-color=#080808bf
+text-color=#ff003c
+border-color=#ff003c
+progress-color=over #1a1a1a
+border-size=2
+border-radius=15
+padding=12
+margin=10
+width=360
+default-timeout=5000
+
+[urgency=low]
+border-color=#5a1a26
+
+[urgency=high]
+border-color=#fcee09
+text-color=#fcee09
+default-timeout=0

@@ -1,0 +1,25 @@
+{
+    // Explorador de arquivos (barra lateral principal) do lado direito
+    "workbench.sideBar.location": "right",
+
+    // Barra lateral secundária (chat/IA) sempre começa fechada
+    "workbench.secondarySideBar.defaultVisibility": "hidden",
+
+    // Desliga o chat e os recursos de IA embutidos do editor
+    "chat.disableAIFeatures": true,
+
+    // Mesmo visual do sistema (tema Cyber Arch, criado localmente com a paleta do Hyprland/Waybar/Ghostty)
+    "workbench.colorTheme": "Cyber Arch",
+    "editor.fontFamily": "'JetBrainsMono Nerd Font', monospace",
+    "editor.fontLigatures": true,
+    "editor.fontSize": 14,
+    "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font'",
+    // Terminal integrado sempre em zsh (mesmo se o Code for aberto por algo que ainda tenha SHELL=bash)
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "editor.cursorBlinking": "phase",
+    "editor.bracketPairColorization.enabled": true,
+
+    // Não destacar acentos do português (ã, ç, é...) como caracteres suspeitos
+    "editor.unicodeHighlight.nonBasicASCII": false,
+    "files.autoSave": "afterDelay"
+}

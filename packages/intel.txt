@@ -1,0 +1,5 @@
+# Instalados só em CPU/GPU Intel
+intel-ucode
+intel-media-driver
+vulkan-intel
+thermald

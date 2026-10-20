@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Instalar Pacotes
+Comment=Buscar e instalar pacotes do pacman
+Exec=ghostty --class=org.romeu.pkgmanager -e __HOME__/.local/bin/pkg-install
+Icon=system-software-install
+Terminal=false
+Categories=System;

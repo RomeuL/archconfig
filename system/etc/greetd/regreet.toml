@@ -1,0 +1,13 @@
+[background]
+path = "/usr/share/backgrounds/regreet/wallpaper.png"
+fit = "Cover"
+
+[GTK]
+application_prefer_dark_theme = true
+
+[commands]
+reboot = ["systemctl", "reboot"]
+poweroff = ["systemctl", "poweroff"]
+
+[appearance]
+greeting_msg = "Bem-vindo, romeu"

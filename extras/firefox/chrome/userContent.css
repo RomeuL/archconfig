@@ -1,0 +1,10 @@
+/* Cyber Arch — nova aba e página inicial */
+@-moz-document url("about:newtab"), url("about:home"), url("about:blank") {
+  body {
+    --newtab-background-color: #080808 !important;
+    --newtab-background-color-secondary: #0f0f0f !important;
+    --newtab-text-primary-color: #ff003c !important;
+    --newtab-primary-action-background: #00f0ff !important;
+    background-color: #080808 !important;
+  }
+}

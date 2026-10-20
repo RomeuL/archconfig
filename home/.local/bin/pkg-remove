@@ -1,0 +1,11 @@
+#!/bin/bash
+# Lista os pacotes instalados explicitamente e remove os selecionados (com dependências órfãs).
+# TAB marca vários pacotes, ENTER remove, ESC cancela.
+pkgs=$(pacman -Qqe | fzf --multi \
+    --prompt="Remover > " \
+    --header="TAB: marcar vários  ·  ENTER: remover  ·  ESC: sair" \
+    --preview 'pacman -Qi {1}' --preview-window=right:60%:wrap)
+
+[ -z "$pkgs" ] && exit 0
+echo "$pkgs" | xargs -ro sudo pacman -Rns
+echo; read -rsn1 -p "Pressione qualquer tecla para fechar..."

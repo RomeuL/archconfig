@@ -1,0 +1,3 @@
+# Instalados só em CPU/GPU AMD
+amd-ucode
+vulkan-radeon

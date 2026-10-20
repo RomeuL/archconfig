@@ -1,0 +1,23 @@
+# Cyber-Arch (portado do tema do Kitty de github.com/V1xEr3bus/Cyber-Arch)
+background = #000000
+foreground = #ff003c
+cursor-color = #00f0ff
+cursor-text = #000000
+selection-background = #1a1a1a
+selection-foreground = #00f0ff
+palette = 0=#060606
+palette = 1=#ff003c
+palette = 2=#00ff9c
+palette = 3=#fcee09
+palette = 4=#0a84ff
+palette = 5=#d57bff
+palette = 6=#00f0ff
+palette = 7=#eeffff
+palette = 8=#1a1a1a
+palette = 9=#ff335f
+palette = 10=#36ffb9
+palette = 11=#fde93f
+palette = 12=#4aa3ff
+palette = 13=#c592ff
+palette = 14=#5af7ff
+palette = 15=#ffffff

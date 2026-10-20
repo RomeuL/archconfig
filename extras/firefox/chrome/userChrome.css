@@ -1,0 +1,62 @@
+/* Cyber Arch — interface do Firefox com a paleta do sistema
+   vermelho #ff003c · ciano #00f0ff · amarelo #fcee09 · fundo #060606/#080808 */
+:root {
+  --ca-red: #ff003c;
+  --ca-cyan: #00f0ff;
+  --ca-yellow: #fcee09;
+  --ca-bg: #060606;
+  --ca-bg2: #0f0f0f;
+  --ca-line: #2a0a12;
+
+  --lwt-accent-color: var(--ca-bg) !important;
+  --lwt-text-color: var(--ca-red) !important;
+  --toolbox-bgcolor: var(--ca-bg) !important;
+  --toolbox-textcolor: var(--ca-red) !important;
+  --toolbar-bgcolor: var(--ca-bg) !important;
+  --toolbar-color: var(--ca-red) !important;
+  --chrome-content-separator-color: var(--ca-line) !important;
+
+  --tab-selected-bgcolor: var(--ca-bg2) !important;
+  --tab-selected-textcolor: var(--ca-cyan) !important;
+  --tab-loading-fill: var(--ca-cyan) !important;
+  --tab-border-radius: 8px !important;
+
+  --toolbar-field-background-color: #000000 !important;
+  --toolbar-field-color: var(--ca-yellow) !important;
+  --toolbar-field-border-color: var(--ca-line) !important;
+  --toolbar-field-focus-background-color: #000000 !important;
+  --toolbar-field-focus-color: var(--ca-yellow) !important;
+  --toolbar-field-focus-border-color: var(--ca-cyan) !important;
+  --urlbar-box-bgcolor: var(--ca-bg2) !important;
+  --urlbar-box-text-color: var(--ca-red) !important;
+
+  --arrowpanel-background: var(--ca-bg) !important;
+  --arrowpanel-color: var(--ca-red) !important;
+  --arrowpanel-border-color: var(--ca-red) !important;
+  --panel-separator-color: var(--ca-line) !important;
+  --focus-outline-color: var(--ca-cyan) !important;
+  --button-hover-bgcolor: rgba(255, 0, 60, 0.15) !important;
+  --toolbarbutton-icon-fill: var(--ca-red) !important;
+  --sidebar-background-color: var(--ca-bg) !important;
+  --sidebar-text-color: var(--ca-red) !important;
+}
+
+/* aba ativa com a linha ciano em cima, como no Code OSS */
+.tab-background[selected] {
+  border-top: 2px solid var(--ca-cyan) !important;
+  box-shadow: none !important;
+}
+.tabbrowser-tab:not([selected]) .tab-label { color: rgba(255, 0, 60, 0.75) !important; }
+
+/* seleção e destaque da lista de sugestões da barra de endereço */
+.urlbarView-row[selected] { background-color: rgba(0, 240, 255, 0.15) !important; }
+.urlbarView-row[selected] .urlbarView-title { color: var(--ca-cyan) !important; }
+.urlbarView-url { color: var(--ca-yellow) !important; }
+::selection { background: rgba(0, 240, 255, 0.35); color: #ffffff; }
+
+/* menus de contexto */
+menupopup {
+  --panel-background: var(--ca-bg) !important;
+  --panel-color: var(--ca-red) !important;
+  --panel-border-color: var(--ca-red) !important;
+}

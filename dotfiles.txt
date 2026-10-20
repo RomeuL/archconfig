@@ -1,0 +1,42 @@
+# Arquivos e pastas copiados entre $HOME e home/ (caminhos relativos ao $HOME).
+# Pastas são copiadas inteiras (sem arquivos *.bak).
+
+# Shell
+.zshrc
+.bashrc
+.gitconfig
+.config/starship.toml
+.config/fastfetch
+
+# Hyprland e desktop
+.config/hypr
+.config/waybar
+.config/wofi
+.config/mako
+.config/xdg-terminals.list
+
+# Terminal
+.config/ghostty
+
+# Tema escuro dos apps (GTK, Qt, KDE)
+.config/gtk-3.0/settings.ini
+.config/gtk-4.0/settings.ini
+.config/qt6ct/qt6ct.conf
+.config/kdeglobals
+
+# Code OSS
+.config/Code - OSS/User/settings.json
+
+# Claude Code (status line e hooks do Waybar)
+.claude/settings.json
+.claude/statusline.py
+.claude/hooks
+
+# Instalador/removedor de pacotes no launcher
+.local/bin/pkg-install
+.local/bin/pkg-remove
+.local/share/applications/pkg-install.desktop
+.local/share/applications/pkg-remove.desktop
+
+# Papéis de parede
+Pictures/Wallpapers

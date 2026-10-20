@@ -1,0 +1,11 @@
+#!/bin/bash
+# Busca pacotes nos repositórios oficiais e instala os selecionados.
+# TAB marca vários pacotes, ENTER instala, ESC cancela.
+pkgs=$(pacman -Slq | sort -u | fzf --multi \
+    --prompt="Instalar > " \
+    --header="TAB: marcar vários  ·  ENTER: instalar  ·  ESC: sair" \
+    --preview 'pacman -Si {1}' --preview-window=right:60%:wrap)
+
+[ -z "$pkgs" ] && exit 0
+echo "$pkgs" | xargs -ro sudo pacman -S --needed
+echo; read -rsn1 -p "Pressione qualquer tecla para fechar..."

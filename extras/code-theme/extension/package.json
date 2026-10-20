@@ -1,0 +1,27 @@
+{
+	"name": "cyber-arch-theme",
+	"displayName": "Cyber Arch",
+	"description": "Tema Cyberpunk 2077 igual ao do sistema (Hyprland/Waybar/Ghostty)",
+	"version": "1.0.0",
+	"publisher": "romeu",
+	"engines": {
+		"vscode": "^1.80.0"
+	},
+	"categories": [
+		"Themes"
+	],
+	"contributes": {
+		"themes": [
+			{
+				"label": "Cyber Arch",
+				"uiTheme": "vs-dark",
+				"path": "./themes/cyber-arch-color-theme.json"
+			}
+		]
+	},
+	"__metadata": {
+		"installedTimestamp": 1792366162477,
+		"targetPlatform": "undefined",
+		"size": 12700
+	}
+}

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Remover Pacotes
+Comment=Buscar e remover pacotes instalados
+Exec=ghostty --class=org.romeu.pkgmanager -e __HOME__/.local/bin/pkg-remove
+Icon=edit-delete
+Terminal=false
+Categories=System;

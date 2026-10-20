@@ -1,0 +1,12 @@
+font-family = JetBrainsMono Nerd Font
+font-size = 15
+theme = cyber-arch
+background-opacity = 1.0
+window-padding-x = 8
+window-padding-y = 6
+window-decoration = false
+confirm-close-surface = false
+shell-integration = zsh
+command = /usr/bin/zsh
+cursor-style = block
+gtk-custom-css = __HOME__/.config/ghostty/tabs.css

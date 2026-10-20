@@ -1,0 +1,10 @@
+[credential "https://git.mossoro.rn.gov.br"]
+	helper = store
+	username = Romeu
+[url "https://git.mossoro.rn.gov.br/"]
+	insteadOf = http://git.mossoro.rn.gov.br/
+[user]
+	name = Romeu
+	email = romeulcs1@gmail.com
+[init]
+	defaultBranch = main

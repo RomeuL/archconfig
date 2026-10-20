@@ -1,0 +1,88 @@
+# Pacotes oficiais (pacman) instalados pelo install.sh. Um por linha; "#" é comentário.
+# A base do sistema (base, linux, linux-firmware, bootloader...) vem do archinstall.
+
+# Desktop Hyprland
+hyprland
+hypridle
+hyprlock
+hyprpaper
+hyprpolkitagent
+hyprshot
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+qt5-wayland
+qt6-wayland
+waybar
+wofi
+mako
+brightnessctl
+network-manager-applet
+networkmanager
+wireless-regdb
+
+# Tela de login
+greetd
+greetd-regreet
+cage
+
+# Áudio e Bluetooth
+pipewire
+pipewire-alsa
+pipewire-pulse
+wireplumber
+pavucontrol
+bluez
+bluez-utils
+blueman
+
+# Energia e firmware
+power-profiles-daemon
+fwupd
+
+# Terminal e shell
+ghostty
+kitty
+zsh
+zsh-autosuggestions
+zsh-syntax-highlighting
+starship
+eza
+zoxide
+fzf
+fastfetch
+btop
+
+# Tema (fontes, modo escuro)
+noto-fonts
+noto-fonts-cjk
+noto-fonts-emoji
+otf-font-awesome
+ttf-jetbrains-mono
+ttf-jetbrains-mono-nerd
+gnome-themes-extra
+breeze
+qt6ct
+
+# Apps
+firefox
+code
+dolphin
+discord
+flatpak
+
+# Desenvolvimento
+base-devel
+git
+github-cli
+mise
+python
+jq
+nano
+docker
+docker-compose
+docker-buildx
+postgresql-libs
+openai-codex
+
+# Rede
+tailscale
