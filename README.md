@@ -29,8 +29,7 @@ cd archconfig
 ./install.sh
 ```
 
-O GitHub vai pedir login para clonar, porque o repositório é privado. Use seu usuário e um
-token pessoal como senha (crie em github.com → Settings → Developer settings → Personal access tokens).
+O repositório é público, então o clone não pede login.
 
 ### 3. Depois do script
 
