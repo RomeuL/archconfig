@@ -5,17 +5,37 @@ Minha configuração do Arch Linux: **Hyprland + Waybar + Ghostty + zsh**, com o
 
 ## PC novo
 
-1. Instale o Arch com o `archinstall` (perfil mínimo, NetworkManager, seu usuário com sudo).
-2. Entre no seu usuário e rode:
+### 1. archinstall
 
-   ```sh
-   sudo pacman -S --needed git
-   git clone https://github.com/<seu-usuario>/archconfig.git
-   cd archconfig
-   ./install.sh
-   ```
+Rode `archinstall` no pendrive do Arch e escolha:
 
-3. Siga as tarefas que o script lista no final (logins, Claude Code, reiniciar).
+| Opção | Valor |
+|---|---|
+| **Profile** | `Minimal` (sem desktop: o script instala o Hyprland e todo o resto) |
+| **Audio** | `No audio server` (o script instala o PipeWire) |
+| **Network configuration** | `Use NetworkManager` (para ter internet depois do primeiro boot) |
+| **Additional packages** | `git` (o único pacote extra) |
+| **User account** | seu usuário, marcado como **superuser** (sudo) |
+
+O resto (disco, bootloader, fuso horário, idioma) fica a seu critério.
+
+### 2. Primeiro boot
+
+Entre com seu usuário no terminal (TTY). Se for Wi-Fi, conecte com `nmtui`. Depois:
+
+```sh
+git clone https://github.com/RomeuL/archconfig.git
+cd archconfig
+./install.sh
+```
+
+O GitHub vai pedir login para clonar, porque o repositório é privado. Use seu usuário e um
+token pessoal como senha (crie em github.com → Settings → Developer settings → Personal access tokens).
+
+### 3. Depois do script
+
+Siga as tarefas que ele lista no final (logins, Claude Code) e **reinicie**: o PC vai abrir
+na tela de login gráfica e entrar direto no Hyprland.
 
 Dá para rodar só uma parte: `./install.sh firefox code-theme`.
 Etapas: `packages shell dotfiles system services flatpak dark-mode firefox code-theme`.

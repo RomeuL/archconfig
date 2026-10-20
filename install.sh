@@ -200,6 +200,8 @@ ALL=(packages shell dotfiles system services flatpak dark-mode firefox code-them
 
 [ "$(id -u)" -eq 0 ] && { echo "Rode como seu usuário (sem sudo); o script pede a senha quando precisar."; exit 1; }
 [ -f /etc/arch-release ] || { echo "Este script é para Arch Linux."; exit 1; }
+command -v sudo >/dev/null || { echo "Falta o sudo: no archinstall, marque seu usuário como superuser."; exit 1; }
+command -v git  >/dev/null || { echo "Falta o git: sudo pacman -S git"; exit 1; }
 
 steps=("$@"); [ "${#steps[@]}" -eq 0 ] && steps=("${ALL[@]}")
 sudo -v   # pede a senha uma vez no começo
