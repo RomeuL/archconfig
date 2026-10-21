@@ -322,6 +322,8 @@ hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
 
 -- Lock screen, screenshots
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
+-- Menu de energia (o mesmo do botão ⏻ do Waybar)
+hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/power-menu"))
 local screenshot = "hyprshot -o ~/Pictures/Screenshots"
 hl.bind("Print",               hl.dsp.exec_cmd(screenshot .. " -m region"))
 hl.bind("SHIFT + Print",       hl.dsp.exec_cmd(screenshot .. " -m output -m active"))

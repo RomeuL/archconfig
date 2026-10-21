@@ -38,6 +38,9 @@
 .local/bin/theme-set
 .local/bin/theme-pick
 .local/bin/theme-get
+
+# Menu de energia (botão ⏻ do Waybar e SUPER+Esc)
+.local/bin/power-menu
 .local/share/applications/theme-pick.desktop
 .local/share/color-schemes/TemaDoSistema.colors
 

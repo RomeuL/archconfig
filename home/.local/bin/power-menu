@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Menu de energia: botão ⏻ do Waybar ou SUPER+Esc (o atalho de novo fecha o menu).
+# Escolha com as setas ou digitando o começo da opção.
+set -uo pipefail
+pidfile="${XDG_RUNTIME_DIR:-/tmp}/power-menu.pid"
+
+# Menu já aberto: fecha (só se o PID guardado ainda for o wofi deste menu)
+if pid="$(cat "$pidfile" 2>/dev/null)" && [ "$(cat "/proc/$pid/comm" 2>/dev/null)" = wofi ]; then
+    kill "$pid"
+    exit 0
+fi
+pkill -x wofi  # outro menu aberto (ex.: o launcher) dá lugar a este
+
+out="$(mktemp)"
+trap 'rm -f "$out" "$pidfile"' EXIT
+printf '%s\n' "󰌾  Bloquear" "󰒲  Suspender" "󰜉  Reiniciar" "󰐥  Desligar" "󰍃  Sair" |
+    wofi --dmenu --prompt Energia --cache-file /dev/null --width 260 --lines 5 > "$out" &
+echo $! > "$pidfile"  # $! de um pipeline em segundo plano é o último comando: o wofi
+wait $! || exit 0
+
+case "$(<"$out")" in
+    *Bloquear)  loginctl lock-session ;;
+    *Suspender) systemctl suspend ;;
+    *Reiniciar) systemctl reboot ;;
+    *Desligar)  systemctl poweroff ;;
+    *Sair)      command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()' ;;
+esac

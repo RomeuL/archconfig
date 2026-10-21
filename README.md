@@ -74,6 +74,7 @@ do PC novo durante a instalação.
 | SUPER+1…5 | workspaces do monitor principal |
 | SUPER+Z / X | workspaces do monitor externo |
 | SUPER+L | bloqueia a tela |
+| SUPER+Esc | menu de energia (bloquear, suspender, reiniciar, desligar, sair) |
 | SUPER+SHIFT+T | troca o tema do sistema |
 | Print / SHIFT+Print / SUPER+Print | captura de área / tela / janela |
 

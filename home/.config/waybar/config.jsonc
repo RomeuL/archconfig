@@ -120,6 +120,6 @@
     "custom/power": {
         "format": "⏻",
         "tooltip": false,
-        "on-click": "echo -e 'Bloquear\\nSuspender\\nReiniciar\\nDesligar\\nSair' | wofi --dmenu -p 'Energia' | xargs -I{} sh -c 'case {} in Bloquear) loginctl lock-session;; Suspender) systemctl suspend;; Reiniciar) systemctl reboot;; Desligar) systemctl poweroff;; Sair) hyprctl dispatch \"hl.dsp.exit()\";; esac'"
+        "on-click": "~/.local/bin/power-menu"
     }
 }
