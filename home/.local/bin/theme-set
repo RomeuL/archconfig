@@ -1,0 +1,428 @@
+#!/usr/bin/env python3
+"""Troca o tema do sistema: cores, papel de parede e modo claro/escuro.
+
+Uso:
+  theme-set <tema>     aplica o tema (de novo no tema atual: próximo papel de parede)
+  theme-set --refresh  gera de novo os arquivos do tema atual (depois de editar um template)
+  theme-set --list     lista os temas instalados
+  theme-set --menu     linhas para o theme-pick: <tema><TAB><nome com as cores>
+
+Cada tema é uma pasta em ~/.config/theme/themes/<tema>/ no formato do Omarchy:
+colors.toml (paleta) e backgrounds/ (papéis de parede), mais um lock.<ext> opcional
+para a tela de bloqueio. Cada ~/.config/theme/templates/<arquivo>.tpl vira
+~/.config/theme/current/<arquivo>, que é o que as configs dos apps importam. Um arquivo
+com o mesmo nome na pasta do tema (ex.: vscode-theme.json) substitui o gerado.
+
+Nos templates: {{ cor }} (#rrggbb), {{ cor_strip }} (rrggbb), {{ cor_rgb }} (r,g,b),
+{{ mix cor1 cor2 15% }}, {{ hypr_gradient chave fallback }} (borda do Hyprland em Lua),
+{{ by_mode valor-escuro valor-claro }}, {{ theme_title }}, {{ theme_type }} e {{ home }}.
+"""
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+import tomllib
+from pathlib import Path
+
+ROOT = Path.home() / ".config/theme"
+THEMES = ROOT / "themes"
+TEMPLATES = ROOT / "templates"
+CURRENT = ROOT / "current"
+STATE = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state") / "theme-set.json"
+IMAGES = {".png", ".jpg", ".jpeg", ".webp"}
+# Pasta legível pelo usuário greeter (a tela de login não enxerga o $HOME); criada pelo install.sh
+LOGIN = Path("/var/lib/theme-set")
+
+NAME_RE = re.compile(r"[a-z0-9][a-z0-9_-]*")
+HEX_RE = re.compile(r"(?:#|0x)([0-9a-fA-F]{6})(?:[0-9a-fA-F]{2})?")
+TOKEN_RE = re.compile(r"\{\{\s*(.*?)\s*\}\}")
+# Bordas do Hyprland aceitam gradiente: cores (#hex, rgb(...), rgba(...)) e um ângulo "45deg"
+GRADIENT_KEYS = {"hyprland_active_border", "hyprland_inactive_border"}
+GRADIENT_TOKEN = (r"#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?|rgba?\([0-9a-fA-F]{6,8}\)"
+                  r"|rgba?\(\s*\d{1,3}(?:\s*,\s*[\d.]+){2,3}\s*\)|\d{1,3}deg")
+GRADIENT_RE = re.compile(rf"\s*(?:(?:{GRADIENT_TOKEN})\s*)+")
+
+SHORT_NAMES = {"bg": "background", "dark_bg": "dark_background", "darker_bg": "darker_background",
+               "lighter_bg": "lighter_background", "fg": "foreground", "dark_fg": "dark_foreground",
+               "light_fg": "light_foreground", "bright_fg": "bright_foreground"}
+ANSI = ["red", "green", "yellow", "blue", "magenta", "cyan"]  # color1-6 (bright_*: color9-14)
+ALACRITTY = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"]
+
+
+def fail(msg):
+    sys.exit(f"theme-set: {msg}")
+
+
+def rgb(color):
+    return tuple(int(color[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def mix(a, b, amount):
+    """Mistura duas cores (amount = quanto de b, de 0 a 1), com a mesma conta do Omarchy."""
+    return "#" + "".join(f"{int(x * (1 - amount) + y * amount + 0.5):02x}" for x, y in zip(rgb(a), rgb(b)))
+
+
+def title(theme):
+    return theme.replace("-", " ").replace("_", " ").title()
+
+
+def installed():
+    if not THEMES.is_dir():
+        return []
+    return sorted(d.name for d in THEMES.iterdir() if NAME_RE.fullmatch(d.name)
+                  and ((d / "colors.toml").is_file() or (d / "alacritty.toml").is_file()))
+
+
+def current_theme():
+    try:
+        return (CURRENT / "theme").read_text().strip()
+    except OSError:
+        return None
+
+
+def from_alacritty(data):
+    """Temas antigos do Omarchy só trazem alacritty.toml: tira a paleta de lá."""
+    colors = data.get("colors", {})
+    out = {}
+    for i, name in enumerate(ALACRITTY):
+        for group, offset in (("normal", 0), ("bright", 8)):
+            if name in colors.get(group, {}):
+                out[f"color{i + offset}"] = colors[group][name]
+    for key, group, field in (("background", "primary", "background"), ("foreground", "primary", "foreground"),
+                              ("cursor", "cursor", "cursor"), ("selection", "selection", "background")):
+        if field in colors.get(group, {}):
+            out[key] = colors[group][field]
+    return out
+
+
+def read_palette(theme):
+    """Lê a paleta do tema aceitando só valores de cor (o arquivo pode vir da internet)."""
+    folder = THEMES / theme
+    try:
+        if (folder / "colors.toml").is_file():
+            data = tomllib.loads((folder / "colors.toml").read_text())
+        else:
+            data = from_alacritty(tomllib.loads((folder / "alacritty.toml").read_text()))
+    except (OSError, tomllib.TOMLDecodeError) as e:
+        fail(f"{theme}: não consegui ler a paleta ({e})")
+    colors, extra = {}, {}
+    for key, value in data.items():
+        if not isinstance(value, str):
+            continue
+        key, value = key.lower(), value.strip()
+        if key in ("mode", "theme_type"):
+            if value in ("dark", "light"):
+                extra.setdefault("mode", value)
+        elif key in GRADIENT_KEYS and GRADIENT_RE.fullmatch(value):
+            extra[key] = value
+        elif m := HEX_RE.fullmatch(value):
+            colors[key] = "#" + m.group(1).lower()
+        else:
+            print(f"theme-set: {theme}: ignorando {key} = {value!r}", file=sys.stderr)
+    return colors, extra
+
+
+def resolve(colors, extra, folder):
+    """Completa a paleta com as mesmas regras do Omarchy (omarchy-theme-color)."""
+    c = dict(colors)
+
+    def fill(key, *sources):
+        if key not in c:
+            for source in sources:
+                if source in c:
+                    c[key] = c[source]
+                    return
+
+    for short, full in SHORT_NAMES.items():
+        fill(full, short)
+    for i, name in enumerate(ANSI, 1):
+        fill(name, f"color{i}")
+        fill(f"bright_{name}", f"color{i + 8}")
+    fill("magenta", "purple")
+    fill("bright_magenta", "bright_purple")
+    fill("background", "color0")
+    fill("foreground", "color7")
+    if "background" not in c or "foreground" not in c:
+        fail(f"{folder.name}: a paleta precisa de background e foreground")
+    for name in ANSI:  # tema incompleto: nenhum template fica sem cor
+        fill(name, "foreground")
+    fill("accent", "blue")
+
+    fill("light_foreground", "color7", "foreground")
+    fill("bright_foreground", "color15", "foreground")
+    fill("lighter_background", "color0", "background")
+    fill("dark_foreground", "color8", "foreground")
+    fill("muted", "color8", "dark_foreground")
+    fill("selection", "selection_background", "color8", "color0", "background")
+    fill("selection_background", "selection")
+    fill("selection_foreground", "bright_foreground")
+    fill("cursor", "bright_foreground")
+    fill("orange", "yellow")
+    derived = {"brown": ("orange", "#000000", 0.5),
+               "dark_background": ("background", "#000000", 0.25),
+               "darker_background": ("background", "#000000", 0.5)}
+    derived.update({f"bright_{name}": (name, "#ffffff", 0.2) for name in ANSI})
+    for key, (base, target, amount) in derived.items():
+        if key not in c:
+            c[key] = mix(c[base], target, amount)
+
+    for i, name in enumerate(ANSI, 1):
+        fill(f"color{i}", name)
+        fill(f"color{i + 8}", f"bright_{name}")
+    fill("color0", "background")
+    fill("color7", "foreground")
+    fill("color8", "muted")
+    fill("color15", "bright_foreground")
+
+    # Papéis extras deste sistema (o Cyber Arch usa três cores de destaque)
+    fill("active", "accent")     # workspace ativo, item selecionado, borda da janela ativa
+    fill("highlight", "accent")  # hover, texto digitado nos menus
+    fill("alert", "yellow")      # avisos e notificações urgentes
+
+    mode = extra.get("mode")
+    if not mode:
+        light = (folder / "light.mode").exists() or sum(rgb(c["background"])) > 382
+        mode = "light" if light else "dark"
+    return c, mode
+
+
+def hypr_gradient(spec):
+    """'#00f0ff' -> "rgba(00f0ffff)"; 'rgba(..) rgba(..) 45deg' -> { colors = {...}, angle = 45 }"""
+    colors, angle = [], None
+    for token in re.findall(GRADIENT_TOKEN, spec):
+        if token.endswith("deg"):
+            angle = int(token[:-3])
+        elif token.startswith("#"):
+            colors.append(f"rgba({token[1:].lower()}{'ff' if len(token) == 7 else ''})")
+        else:
+            colors.append(re.sub(r"\s", "", token))
+    if len(colors) == 1 and angle is None:
+        return f'"{colors[0]}"'
+    angle_part = f", angle = {angle}" if angle is not None else ""
+    return "{ colors = { " + ", ".join(f'"{x}"' for x in colors) + " }" + angle_part + " }"
+
+
+def render(template, ctx, colors, extra):
+    def color(arg):
+        if arg in colors:
+            return colors[arg]
+        if m := HEX_RE.fullmatch(arg):
+            return "#" + m.group(1).lower()
+        raise ValueError(f"cor desconhecida: {arg}")
+
+    def formatted(value, suffix):
+        return {"": value, "_strip": value[1:], "_rgb": ",".join(map(str, rgb(value)))}[suffix]
+
+    def replace(match):
+        words = match.group(1).split()
+        head, suffix = words[0], ""
+        for s in ("_strip", "_rgb"):
+            if head.endswith(s) and head not in colors:
+                head, suffix = head[:-len(s)], s
+        if head == "mix" and len(words) == 4:
+            amount = float(words[3].rstrip("%"))
+            if words[3].endswith("%") or amount > 1:
+                amount /= 100
+            return formatted(mix(color(words[1]), color(words[2]), min(max(amount, 0), 1)), suffix)
+        if head == "by_mode" and len(words) == 3:
+            return words[1] if ctx["mode"] == "dark" else words[2]
+        if head == "hypr_gradient" and len(words) == 3:
+            spec = extra.get(words[1]) or colors.get(words[2], words[2])
+            if not GRADIENT_RE.fullmatch(spec):
+                raise ValueError(f"gradiente inválido: {spec}")
+            return hypr_gradient(spec)
+        if len(words) == 1:
+            if head in ctx and not suffix:
+                return ctx[head]
+            if head in colors:
+                return formatted(colors[head], suffix)
+        raise ValueError(f"não sei o que é {match.group(0)}")
+
+    return TOKEN_RE.sub(replace, template)
+
+
+def safe_image(path, folder):
+    """Imagem dentro da pasta do tema (um symlink não pode apontar para fora dela)."""
+    real = path.resolve()
+    return (path.is_file() and path.suffix.lower() in IMAGES and real.is_relative_to(folder.resolve())
+            and not any(ch in str(real) for ch in ",\n"))
+
+
+def load_state():
+    try:
+        return json.loads(STATE.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def pick_background(theme, folder, cycle):
+    """Papel de parede do tema: o último usado nele, ou o próximo quando cycle=True."""
+    images = sorted(p for p in (folder / "backgrounds").glob("*") if safe_image(p, folder))
+    if not images:
+        return None, 0, 0
+    state = load_state()
+    names = [p.name for p in images]
+    i = names.index(state[theme]) if state.get(theme) in names else 0
+    if cycle:
+        i = (i + 1) % len(images)
+    state[theme] = names[i]
+    STATE.parent.mkdir(parents=True, exist_ok=True)
+    STATE.write_text(json.dumps(state, indent=2) + "\n")
+    return images[i], i + 1, len(images)
+
+
+def run(*cmd):
+    try:
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+
+
+def sync_vscode():
+    """Code OSS: o "Tema do Sistema" da extensão local. Reescrito no lugar porque o Code observa
+    o arquivo (_watch no package.json) e troca as cores sem recarregar a janela."""
+    vscode = CURRENT / "vscode-theme.json"
+    if vscode.exists():
+        for ext in Path.home().glob(".vscode-oss/extensions/romeu.theme-picker-*"):
+            target = ext / "themes/system-color-theme.json"
+            target.parent.mkdir(exist_ok=True)
+            target.write_text(vscode.read_text())
+
+
+def export_outside():
+    """Copia as cores para os apps que leem de fora de ~/.config/theme."""
+    sync_vscode()
+
+    # Firefox: userChrome.css e userContent.css importam chrome/theme.css (vale ao reabrir)
+    profiles = [*Path.home().glob(".config/mozilla/firefox/*.default-release"),
+                *Path.home().glob(".mozilla/firefox/*.default-release")]
+    for profile in profiles:
+        link, target = profile / "chrome/theme.css", CURRENT / "firefox.css"
+        if link.parent.is_dir() and not (link.is_symlink() and link.readlink() == target):
+            link.unlink(missing_ok=True)
+            link.symlink_to(target)
+
+    # Tela de login: cores e papel de parede onde o usuário greeter consegue ler
+    if LOGIN.is_dir() and os.access(LOGIN, os.W_OK):
+        for name in ("colors.css", "background"):
+            source = (CURRENT / name).resolve()
+            marker = LOGIN / f".{name}.source"
+            if not source.is_file() or (name == "background" and marker.exists()
+                                        and marker.read_text() == str(source) and (LOGIN / name).exists()):
+                continue
+            tmp = LOGIN / f".{name}.tmp"
+            shutil.copyfile(source, tmp)
+            tmp.chmod(0o644)
+            os.replace(tmp, LOGIN / name)
+            marker.write_text(str(source))
+
+
+def reload_apps(mode):
+    dark = mode == "dark"
+    run("gsettings", "set", "org.gnome.desktop.interface", "color-scheme", "prefer-dark" if dark else "prefer-light")
+    run("gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", "Adwaita-dark" if dark else "Adwaita")
+    if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
+        run("hyprctl", "reload", "config-only")
+        background = CURRENT / "background"
+        if background.exists():
+            run("hyprctl", "hyprpaper", "wallpaper", f",{background.resolve()},cover")
+    run("pkill", "-SIGUSR2", "-x", "waybar")
+    run("makoctl", "reload")
+    run("pkill", "-SIGUSR2", "-x", "ghostty")
+
+
+def apply(theme, cycle):
+    folder = THEMES / theme
+    raw, extra = read_palette(theme)
+    colors, mode = resolve(raw, extra, folder)
+    try:
+        previous_mode = json.loads((CURRENT / "palette.json").read_text())["mode"]
+    except (OSError, ValueError, KeyError):
+        previous_mode = mode
+    background, index, total = pick_background(theme, folder, cycle)
+    locks = [p for p in sorted(folder.glob("lock.*")) if safe_image(p, folder)]
+    lock = locks[0] if locks else background
+    ctx = {"theme_name": theme, "theme_title": title(theme), "theme_type": mode, "mode": mode,
+           "home": str(Path.home())}
+
+    # Gera tudo numa pasta nova e só depois troca: um erro nunca deixa o tema pela metade
+    new, old = ROOT / "current.new", ROOT / "current.old"
+    shutil.rmtree(new, ignore_errors=True)
+    new.mkdir(parents=True)
+    try:
+        for tpl in sorted(TEMPLATES.glob("*.tpl")):
+            own = folder / tpl.stem
+            # Arquivo pronto do tema no lugar do gerado (nunca .lua, que o Hyprland executaria)
+            if own.suffix != ".lua" and own.is_file() and own.resolve().is_relative_to(folder.resolve()):
+                shutil.copyfile(own, new / tpl.stem)
+            else:
+                (new / tpl.stem).write_text(render(tpl.read_text(), ctx, colors, extra))
+    except ValueError as e:
+        shutil.rmtree(new, ignore_errors=True)
+        fail(f"{tpl.name}: {e}")
+    (new / "theme").write_text(theme + "\n")
+    # Paleta completa para scripts (ex.: ~/.config/waybar/scripts/agents.py)
+    (new / "palette.json").write_text(json.dumps({"theme": theme, "mode": mode, "colors": colors}, indent=2) + "\n")
+    for link, image in (("background", background), ("lock", lock)):
+        if not image and (CURRENT / link).exists():
+            image = CURRENT / link  # tema sem imagens: fica a atual
+        if image:
+            (new / link).symlink_to(image.resolve())
+
+    shutil.rmtree(old, ignore_errors=True)
+    if CURRENT.exists():
+        CURRENT.rename(old)
+    new.rename(CURRENT)
+    shutil.rmtree(old, ignore_errors=True)
+
+    export_outside()
+    reload_apps(mode)
+    if mode != previous_mode:
+        # O Code troca entre "Tema do Sistema" e "(claro)" ao mudar o modo e usa as cores que
+        # tinha guardado dessa versão; regravar o arquivo depois da troca faz ele reler
+        subprocess.Popen([sys.executable, "-I", os.path.abspath(__file__), "--vscode-sync"],
+                         start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    detail = f" · papel de parede {index} de {total}" if total > 1 else ""
+    run("notify-send", "-a", "theme-set", "-t", "2500", "Tema", title(theme) + detail)
+
+
+def menu():
+    current = current_theme()
+    for theme in installed():
+        try:
+            colors, _ = resolve(*read_palette(theme), THEMES / theme)
+        except SystemExit:
+            continue
+        dots = "".join(f"<span foreground='{colors[k]}'>●</span>"
+                       for k in ("accent", "red", "yellow", "green", "cyan", "blue", "magenta"))
+        mark = "   · atual" if theme == current else ""
+        print(f"{theme}\t{dots}   {title(theme)}{mark}")
+
+
+def main(args):
+    if not args or args[0] in ("-h", "--help"):
+        print(__doc__.strip())
+        return
+    if args[0] == "--list":
+        print("\n".join(installed()))
+    elif args[0] == "--menu":
+        menu()
+    elif args[0] == "--vscode-sync":  # uso interno (ver apply)
+        time.sleep(2)
+        sync_vscode()
+    elif args[0] == "--refresh":
+        theme = current_theme()
+        if not theme or theme not in installed():
+            fail("nenhum tema aplicado ainda (use theme-set <tema>)")
+        apply(theme, cycle=False)
+    elif NAME_RE.fullmatch(args[0]) and args[0] in installed():
+        apply(args[0], cycle=args[0] == current_theme())
+    else:
+        fail(f"tema '{args[0]}' não encontrado (veja theme-set --list)")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

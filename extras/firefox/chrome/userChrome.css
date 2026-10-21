@@ -1,62 +1,58 @@
-/* Cyber Arch — interface do Firefox com a paleta do sistema
-   vermelho #ff003c · ciano #00f0ff · amarelo #fcee09 · fundo #060606/#080808 */
+/* Interface do Firefox com as cores do tema atual do sistema (estilo Cyber Arch).
+   theme.css é gerado pelo theme-set (link para ~/.config/theme/current/firefox.css);
+   o Firefox só relê ao ser reaberto. */
+@import "theme.css";
+
 :root {
-  --ca-red: #ff003c;
-  --ca-cyan: #00f0ff;
-  --ca-yellow: #fcee09;
-  --ca-bg: #060606;
-  --ca-bg2: #0f0f0f;
-  --ca-line: #2a0a12;
+  --lwt-accent-color: var(--tp-bg) !important;
+  --lwt-text-color: var(--tp-foreground) !important;
+  --toolbox-bgcolor: var(--tp-bg) !important;
+  --toolbox-textcolor: var(--tp-foreground) !important;
+  --toolbar-bgcolor: var(--tp-bg) !important;
+  --toolbar-color: var(--tp-foreground) !important;
+  --chrome-content-separator-color: var(--tp-line) !important;
 
-  --lwt-accent-color: var(--ca-bg) !important;
-  --lwt-text-color: var(--ca-red) !important;
-  --toolbox-bgcolor: var(--ca-bg) !important;
-  --toolbox-textcolor: var(--ca-red) !important;
-  --toolbar-bgcolor: var(--ca-bg) !important;
-  --toolbar-color: var(--ca-red) !important;
-  --chrome-content-separator-color: var(--ca-line) !important;
-
-  --tab-selected-bgcolor: var(--ca-bg2) !important;
-  --tab-selected-textcolor: var(--ca-cyan) !important;
-  --tab-loading-fill: var(--ca-cyan) !important;
+  --tab-selected-bgcolor: var(--tp-bg2) !important;
+  --tab-selected-textcolor: var(--tp-active) !important;
+  --tab-loading-fill: var(--tp-active) !important;
   --tab-border-radius: 8px !important;
 
-  --toolbar-field-background-color: #000000 !important;
-  --toolbar-field-color: var(--ca-yellow) !important;
-  --toolbar-field-border-color: var(--ca-line) !important;
-  --toolbar-field-focus-background-color: #000000 !important;
-  --toolbar-field-focus-color: var(--ca-yellow) !important;
-  --toolbar-field-focus-border-color: var(--ca-cyan) !important;
-  --urlbar-box-bgcolor: var(--ca-bg2) !important;
-  --urlbar-box-text-color: var(--ca-red) !important;
+  --toolbar-field-background-color: var(--tp-background) !important;
+  --toolbar-field-color: var(--tp-highlight) !important;
+  --toolbar-field-border-color: var(--tp-line) !important;
+  --toolbar-field-focus-background-color: var(--tp-background) !important;
+  --toolbar-field-focus-color: var(--tp-highlight) !important;
+  --toolbar-field-focus-border-color: var(--tp-active) !important;
+  --urlbar-box-bgcolor: var(--tp-bg2) !important;
+  --urlbar-box-text-color: var(--tp-foreground) !important;
 
-  --arrowpanel-background: var(--ca-bg) !important;
-  --arrowpanel-color: var(--ca-red) !important;
-  --arrowpanel-border-color: var(--ca-red) !important;
-  --panel-separator-color: var(--ca-line) !important;
-  --focus-outline-color: var(--ca-cyan) !important;
-  --button-hover-bgcolor: rgba(255, 0, 60, 0.15) !important;
-  --toolbarbutton-icon-fill: var(--ca-red) !important;
-  --sidebar-background-color: var(--ca-bg) !important;
-  --sidebar-text-color: var(--ca-red) !important;
+  --arrowpanel-background: var(--tp-bg) !important;
+  --arrowpanel-color: var(--tp-foreground) !important;
+  --arrowpanel-border-color: var(--tp-accent) !important;
+  --panel-separator-color: var(--tp-line) !important;
+  --focus-outline-color: var(--tp-active) !important;
+  --button-hover-bgcolor: rgba(var(--tp-accent-rgb), 0.15) !important;
+  --toolbarbutton-icon-fill: var(--tp-foreground) !important;
+  --sidebar-background-color: var(--tp-bg) !important;
+  --sidebar-text-color: var(--tp-foreground) !important;
 }
 
-/* aba ativa com a linha ciano em cima, como no Code OSS */
+/* aba ativa com a linha de destaque em cima, como no Code OSS */
 .tab-background[selected] {
-  border-top: 2px solid var(--ca-cyan) !important;
+  border-top: 2px solid var(--tp-active) !important;
   box-shadow: none !important;
 }
-.tabbrowser-tab:not([selected]) .tab-label { color: rgba(255, 0, 60, 0.75) !important; }
+.tabbrowser-tab:not([selected]) .tab-label { color: rgba(var(--tp-foreground-rgb), 0.75) !important; }
 
 /* seleção e destaque da lista de sugestões da barra de endereço */
-.urlbarView-row[selected] { background-color: rgba(0, 240, 255, 0.15) !important; }
-.urlbarView-row[selected] .urlbarView-title { color: var(--ca-cyan) !important; }
-.urlbarView-url { color: var(--ca-yellow) !important; }
-::selection { background: rgba(0, 240, 255, 0.35); color: #ffffff; }
+.urlbarView-row[selected] { background-color: rgba(var(--tp-active-rgb), 0.15) !important; }
+.urlbarView-row[selected] .urlbarView-title { color: var(--tp-active) !important; }
+.urlbarView-url { color: var(--tp-highlight) !important; }
+::selection { background: rgba(var(--tp-active-rgb), 0.35); color: var(--tp-bright); }
 
 /* menus de contexto */
 menupopup {
-  --panel-background: var(--ca-bg) !important;
-  --panel-color: var(--ca-red) !important;
-  --panel-border-color: var(--ca-red) !important;
+  --panel-background: var(--tp-bg) !important;
+  --panel-color: var(--tp-foreground) !important;
+  --panel-border-color: var(--tp-accent) !important;
 }

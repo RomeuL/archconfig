@@ -6,7 +6,7 @@
 #   ./install.sh            tudo
 #   ./install.sh <etapa>... só as etapas indicadas (ex.: ./install.sh firefox code-theme)
 #
-# Etapas: packages shell dotfiles system services flatpak dark-mode firefox code-theme
+# Etapas: packages shell dotfiles system services flatpak dark-mode theme firefox code-theme
 #
 # Pode ser rodado de novo sem problemas: pacotes já instalados são pulados e todo arquivo
 # substituído vai antes para ~/.config-backup/archconfig-<data>/.
@@ -69,7 +69,7 @@ step_dotfiles() {
     local path src dst
     while IFS= read -r path; do
         src="$REPO/home/$path"; dst="$HOME/$path"
-        [ -e "$src" ] || continue
+        [ -e "$src" ] || [ -L "$src" ] || continue   # -L: links para o tema gerado (ainda sem destino)
         if [ -e "$dst" ] || [ -L "$dst" ]; then
             mkdir -p "$(dirname "$BACKUP/$path")"
             mv "$dst" "$BACKUP/$path"
@@ -80,18 +80,24 @@ step_dotfiles() {
         { grep -rlI --null '__HOME__' "$dst" 2>/dev/null || true; } | xargs -0 -r sed -i "s|__HOME__|$HOME|g"
         info "$path"
     done < <(list "$REPO/dotfiles.txt")
-    chmod +x "$HOME"/.local/bin/pkg-* "$HOME"/.claude/statusline.py "$HOME"/.claude/hooks/*.sh \
+    chmod +x "$HOME"/.local/bin/pkg-* "$HOME"/.local/bin/theme-* "$HOME"/.claude/statusline.py "$HOME"/.claude/hooks/*.sh \
              "$HOME"/.config/hypr/scripts/*.sh "$HOME"/.config/waybar/scripts/*.py 2>/dev/null || true
-    [ -d "$BACKUP" ] && info "Arquivos antigos guardados em $BACKUP"
+    # As configs importam as cores de ~/.config/theme/current: gera se ainda não existir
+    if [ ! -f "$HOME/.config/theme/current/theme" ]; then
+        "$HOME/.local/bin/theme-set" cyber-arch && info "tema Cyber Arch gerado"
+    fi
+    if [ -d "$BACKUP" ]; then info "Arquivos antigos guardados em $BACKUP"; fi
 }
 
 step_system() {
-    say "Sistema: tela de login, idioma, teclado, Wi-Fi"
+    say "Sistema: tela de login, idioma, teclado, fuso horário, Wi-Fi"
     sudo install -Dm644 "$REPO/system/etc/greetd/config.toml"  /etc/greetd/config.toml
     sudo install -Dm644 "$REPO/system/etc/greetd/regreet.toml" /etc/greetd/regreet.toml
     sudo install -Dm644 "$REPO/system/etc/greetd/regreet.css"  /etc/greetd/regreet.css
-    sudo install -Dm644 "$REPO/system/usr/share/backgrounds/regreet/wallpaper.png" \
-                        /usr/share/backgrounds/regreet/wallpaper.png
+    # Cores e papel de parede da tela de login seguem o tema: o theme-set escreve nesta pasta,
+    # que o usuário greeter consegue ler (ele não enxerga o $HOME)
+    sudo install -d -m 755 -o "$USER" -g "$(id -gn)" /var/lib/theme-set
+    "$HOME/.local/bin/theme-set" --refresh >/dev/null 2>&1 || true
     # A saudação da tela de login usa o nome deste usuário
     sudo sed -i "s/^greeting_msg = .*/greeting_msg = \"Bem-vindo, $USER\"/" /etc/greetd/regreet.toml
 
@@ -101,6 +107,9 @@ step_system() {
     sudo localectl set-locale LANG=en_US.UTF-8 LC_TIME=pt_BR.UTF-8
     sudo localectl set-keymap br-abnt2
     sudo localectl set-x11-keymap br abnt2
+
+    # Fuso horário de Brasília (o archinstall deixa em UTC se não for escolhido)
+    sudo timedatectl set-timezone America/Sao_Paulo
 
     # Região do Wi-Fi (canais e potência do Brasil)
     sudo sed -i 's/^#WIRELESS_REGDOM="BR"/WIRELESS_REGDOM="BR"/' /etc/conf.d/wireless-regdom
@@ -143,6 +152,21 @@ step_dark_mode() {
     "${gs[@]}" set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 }
 
+step_theme() {
+    say "Temas: Cyber Arch e os do Omarchy (troca com SUPER+SHIFT+T)"
+    local name missing=()
+    while IFS= read -r name; do
+        [ -d "$HOME/.config/theme/themes/$name" ] || missing+=("$name")
+    done < <(list "$REPO/packages/themes.txt")
+    if [ "${#missing[@]}" -gt 0 ]; then
+        "$HOME/.local/bin/theme-get" "${missing[@]}"
+    else
+        info "temas do Omarchy já baixados"
+    fi
+    # Gera os arquivos de cor que as configs importam (fica o tema atual, se já houver um)
+    "$HOME/.local/bin/theme-set" --refresh 2>/dev/null || "$HOME/.local/bin/theme-set" cyber-arch
+}
+
 step_firefox() {
     say "Firefox: tema Cyber Arch"
     local prof
@@ -154,11 +178,13 @@ step_firefox() {
     fi
     install -Dm644 "$REPO/extras/firefox/user.js" "$prof/user.js"
     mkdir -p "$prof/chrome" && cp -a "$REPO/extras/firefox/chrome/." "$prof/chrome/"
+    # Cores do tema atual (gerado pelo theme-set)
+    ln -sfn "$HOME/.config/theme/current/firefox.css" "$prof/chrome/theme.css"
     info "aplicado em $prof (reinicie o Firefox)"
 }
 
 step_code_theme() {
-    say "Code OSS: tema Cyber Arch"
+    say "Code OSS: tema do sistema (segue o theme-set)"
     command -v code >/dev/null || { info "code não instalado, pulando"; return; }
     local vsix; vsix="$(mktemp --suffix=.vsix)"
     # Empacota extras/code-theme/extension como .vsix e instala
@@ -192,11 +218,17 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
 PY
     code --install-extension "$vsix" --force >/dev/null 2>&1 && info "tema instalado"
     rm -f "$vsix"
+    # A extensão antiga só com o Cyber Arch (agora ele é um dos temas do theme-set)
+    if code --list-extensions 2>/dev/null | grep -qx romeu.cyber-arch-theme; then
+        code --uninstall-extension romeu.cyber-arch-theme >/dev/null 2>&1 || true
+    fi
+    # Escreve as cores do tema atual na extensão recém-instalada
+    "$HOME/.local/bin/theme-set" --refresh >/dev/null 2>&1 || true
 }
 
 # ---------------------------------------------------------------- execução
 
-ALL=(packages shell dotfiles system services flatpak dark-mode firefox code-theme)
+ALL=(packages shell dotfiles system services flatpak dark-mode theme firefox code-theme)
 
 [ "$(id -u)" -eq 0 ] && { echo "Rode como seu usuário (sem sudo); o script pede a senha quando precisar."; exit 1; }
 [ -f /etc/arch-release ] || { echo "Este script é para Arch Linux."; exit 1; }
@@ -207,7 +239,7 @@ steps=("$@"); [ "${#steps[@]}" -eq 0 ] && steps=("${ALL[@]}")
 sudo -v   # pede a senha uma vez no começo
 for s in "${steps[@]}"; do
     case "$s" in
-        packages|shell|dotfiles|system|services|flatpak|dark-mode|firefox|code-theme)
+        packages|shell|dotfiles|system|services|flatpak|dark-mode|theme|firefox|code-theme)
             "step_${s//-/_}" ;;
         *) echo "Etapa desconhecida: $s (opções: ${ALL[*]})"; exit 1 ;;
     esac

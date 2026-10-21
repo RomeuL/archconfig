@@ -1,11 +1,7 @@
 /* Cyber-Arch (Cyberpunk 2077) — estilo portado de github.com/V1xEr3bus/Cyber-Arch
-   Barra transparente com três "ilhas" escuras; vermelho neon, ciano no ativo, amarelo nos alertas. */
-@define-color red     #ff003c;
-@define-color cyan    #00f0ff;
-@define-color yellow  #fcee09;
-@define-color green   #00ff9c;
-@define-color black   #080808;
-@define-color muted   #5a1a26;
+   Barra transparente com três "ilhas" escuras. As cores vêm do tema atual (theme-set):
+   foreground (texto), accent, active (ativo), highlight (hover), alert (avisos), good, muted */
+@import url("../theme/current/colors.css");
 
 * {
     font-family: "JetBrainsMono Nerd Font", "Noto Sans CJK JP", "Noto Sans", sans-serif;
@@ -17,23 +13,23 @@
 
 window#waybar {
     background-color: transparent;
-    color: @red;
+    color: @foreground;
 }
 
 .modules-left,
 .modules-center,
 .modules-right {
-    background-color: alpha(@black, 0.75);
+    background-color: alpha(@background, 0.75);
     border-radius: 15px;
     padding: 0 6px;
 }
 
 tooltip {
-    background: alpha(@black, 0.92);
-    border: 1px solid @red;
+    background: alpha(@background, 0.92);
+    border: 1px solid @accent;
     border-radius: 12px;
 }
-tooltip label { color: @red; }
+tooltip label { color: @foreground; }
 
 button {
     box-shadow: inset 0 -3px transparent;
@@ -41,29 +37,29 @@ button {
 }
 button:hover {
     background: inherit;
-    box-shadow: inset 0 -3px @yellow;
+    box-shadow: inset 0 -3px @highlight;
 }
 
 #workspaces button {
     padding: 0 7px;
-    color: @red;
+    color: @foreground;
     background: transparent;
 }
 #workspaces button.empty { color: @muted; }
-#workspaces button.active { color: @cyan; }
-#workspaces button.urgent { color: @yellow; }
+#workspaces button.active { color: @active; }
+#workspaces button.urgent { color: @alert; }
 
 #clock, #custom-screenshot, #tray, #pulseaudio, #backlight, #network,
 #bluetooth, #cpu, #memory, #power-profiles-daemon, #battery, #custom-power {
     padding: 0 9px;
-    color: @red;
+    color: @foreground;
     background-color: transparent;
 }
 
-#battery.charging, #battery.plugged { color: @cyan; }
-#battery.warning, #network.disconnected, #pulseaudio.muted { color: @yellow; }
+#battery.charging, #battery.plugged { color: @active; }
+#battery.warning, #network.disconnected, #pulseaudio.muted { color: @alert; }
 #battery.critical:not(.charging) {
-    color: @yellow;
+    color: @alert;
     animation-name: blink;
     animation-duration: 0.5s;
     animation-timing-function: steps(12);
@@ -75,9 +71,9 @@ button:hover {
 }
 
 #custom-codex, #custom-claude { padding: 0 10px; font-size: 15px; }
-#custom-codex.working, #custom-claude.working { box-shadow: inset 0 -3px @cyan; }
-#custom-codex.blocked, #custom-claude.blocked { box-shadow: inset 0 -3px @yellow; }
+#custom-codex.working, #custom-claude.working { box-shadow: inset 0 -3px @active; }
+#custom-codex.blocked, #custom-claude.blocked { box-shadow: inset 0 -3px @alert; }
 
-#power-profiles-daemon.performance { color: @yellow; }
-#power-profiles-daemon.balanced { color: @cyan; }
-#power-profiles-daemon.power-saver { color: @green; }
+#power-profiles-daemon.performance { color: @alert; }
+#power-profiles-daemon.balanced { color: @active; }
+#power-profiles-daemon.power-saver { color: @good; }

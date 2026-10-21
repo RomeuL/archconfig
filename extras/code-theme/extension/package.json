@@ -1,7 +1,7 @@
 {
-	"name": "cyber-arch-theme",
-	"displayName": "Cyber Arch",
-	"description": "Tema Cyberpunk 2077 igual ao do sistema (Hyprland/Waybar/Ghostty)",
+	"name": "theme-picker",
+	"displayName": "Tema do Sistema",
+	"description": "Cores do tema atual do sistema (theme-set), trocadas sem recarregar o editor",
 	"version": "1.0.0",
 	"publisher": "romeu",
 	"engines": {
@@ -13,15 +13,17 @@
 	"contributes": {
 		"themes": [
 			{
-				"label": "Cyber Arch",
+				"label": "Tema do Sistema",
 				"uiTheme": "vs-dark",
-				"path": "./themes/cyber-arch-color-theme.json"
+				"path": "./themes/system-color-theme.json",
+				"_watch": true
+			},
+			{
+				"label": "Tema do Sistema (claro)",
+				"uiTheme": "vs",
+				"path": "./themes/system-color-theme.json",
+				"_watch": true
 			}
 		]
-	},
-	"__metadata": {
-		"installedTimestamp": 1792366162477,
-		"targetPlatform": "undefined",
-		"size": 12700
 	}
 }

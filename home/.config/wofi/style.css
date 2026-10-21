@@ -1,9 +1,11 @@
-/* Cyber-Arch — portado do tema cyberpunk.rasi do rofi */
-window { background-color: rgba(8, 8, 8, 0.92); border: 2px solid #ff003c; border-radius: 15px; font-family: "JetBrainsMono Nerd Font"; }
-#input { margin: 8px; padding: 6px 10px; border: 2px solid #00f0ff; border-radius: 10px; background: #000000; color: #fcee09; }
+/* Cyber-Arch — portado do tema cyberpunk.rasi do rofi; as cores vêm do tema atual (theme-set) */
+/* caminho absoluto: o wofi carrega o CSS como texto, então um caminho relativo não funciona */
+@import url("__HOME__/.config/theme/current/colors.css");
+window { background-color: alpha(@background, 0.92); border: 2px solid @accent; border-radius: 15px; font-family: "JetBrainsMono Nerd Font"; }
+#input { margin: 8px; padding: 6px 10px; border: 2px solid @active; border-radius: 10px; background: @background; color: @highlight; }
 #input:focus { box-shadow: none; }
 #inner-box, #outer-box { margin: 4px; }
 #entry { padding: 4px 8px; border: 2px solid transparent; border-radius: 10px; }
-#entry:selected { background-color: transparent; border: 2px solid #00f0ff; }
-#text { color: #ff003c; }
-#text:selected { color: #00f0ff; }
+#entry:selected { background-color: transparent; border: 2px solid @active; }
+#text { color: @foreground; }
+#text:selected { color: @active; }

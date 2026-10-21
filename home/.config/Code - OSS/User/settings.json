@@ -8,8 +8,12 @@
     // Desliga o chat e os recursos de IA embutidos do editor
     "chat.disableAIFeatures": true,
 
-    // Mesmo visual do sistema (tema Cyber Arch, criado localmente com a paleta do Hyprland/Waybar/Ghostty)
-    "workbench.colorTheme": "Cyber Arch",
+    // Mesmo tema do sistema: a extensão local "Tema do Sistema" recebe as cores do theme-set e o
+    // Code troca sozinho (escuro/claro segue o modo do sistema)
+    "workbench.colorTheme": "Tema do Sistema",
+    "window.autoDetectColorScheme": true,
+    "workbench.preferredDarkColorTheme": "Tema do Sistema",
+    "workbench.preferredLightColorTheme": "Tema do Sistema (claro)",
     "editor.fontFamily": "'JetBrainsMono Nerd Font', monospace",
     "editor.fontLigatures": true,
     "editor.fontSize": 14,

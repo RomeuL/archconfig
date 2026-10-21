@@ -42,11 +42,9 @@ CODEX_BLOCKED = re.compile(
 CODEX_WORKING = {"Working", "Thinking", "Starting", "Waiting"}
 CODEX_SPINNER = re.compile(r"^[^\x00-\x7f\s]{1,2}$")  # título só com o spinner (não-ASCII, para não pegar "~")
 
-COLORS = {
-    "claude": "#ff8a3d",   # laranja
-    "codex": "#00f0ff",    # ciano
-    "blocked": "#fcee09",  # amarelo (alerta no tema Cyber-Arch)
-}
+CLAUDE_ORANGE = "#ff8a3d"  # cor da marca do Claude; as outras vêm do tema atual
+PALETTE = os.path.expanduser("~/.config/theme/current/palette.json")  # gravado pelo theme-set
+_palette = {"mtime": None, "colors": {}}
 CODEX_IDLE = "󰚩"
 BLOCKED = "󰀦"
 
@@ -170,21 +168,39 @@ def fmt_reset(epoch):
     return time.strftime("%a %H:%M", t)
 
 
+def theme(name, fallback):
+    """Cor do tema atual (relida quando o theme-set troca o tema)."""
+    try:
+        mtime = os.stat(PALETTE).st_mtime
+        if mtime != _palette["mtime"]:
+            with open(PALETTE) as f:
+                _palette.update(mtime=mtime, colors=json.load(f)["colors"])
+    except (OSError, ValueError, KeyError):
+        pass
+    return _palette["colors"].get(name, fallback)
+
+
+def agent_color(agent):
+    return CLAUDE_ORANGE if agent == "claude" else theme("active", "#00f0ff")
+
+
 def level_color(pct):
-    return "#ff003c" if pct >= 80 else "#fcee09" if pct >= 50 else "#00ff9c"
+    if pct >= 80:
+        return theme("red", "#ff003c")
+    return theme("yellow", "#fcee09") if pct >= 50 else theme("green", "#00ff9c")
 
 
 def bar(pct, width=10):
     filled = round(max(0, min(100, pct)) / 100 * width)
     color = level_color(pct)
     done = f"<span color='{color}'>{'▰' * filled}</span>" if filled else ""
-    rest = f"<span color='#2a2a2a'>{'▱' * (width - filled)}</span>" if filled < width else ""
+    rest = f"<span color='{theme('muted', '#2a2a2a')}'>{'▱' * (width - filled)}</span>" if filled < width else ""
     return done + rest
 
 
 def limit_line(label, used, resets_at):
     return (f"  {label:<7}{bar(used)} {used:>3.0f}% usado · restam {100 - used:.0f}%"
-            f" <span color='#7a7a7a'>(reseta {fmt_reset(resets_at)})</span>")
+            f" <span color='{theme('dark_foreground', '#7a7a7a')}'>(reseta {fmt_reset(resets_at)})</span>")
 
 
 def short_dir(path):
@@ -277,13 +293,13 @@ def five_hour_used(agent, sessions):
 
 
 def detail(text):
-    return f"    <span color='#7a7a7a'>{text}</span>"
+    return f"    <span color='{theme('dark_foreground', '#7a7a7a')}'>{text}</span>"
 
 
 def claude_tooltip(state, sessions):
-    lines = [f"<b><span color='{COLORS['claude']}'>Claude Code</span></b> · {state}"]
+    lines = [f"<b><span color='{CLAUDE_ORANGE}'>Claude Code</span></b> · {state}"]
     if not sessions:
-        return lines + ["  <span color='#7a7a7a'>sem dados ainda (aparecem após a primeira resposta)</span>"]
+        return lines + [f"  <span color='{theme('dark_foreground', '#7a7a7a')}'>sem dados ainda (aparecem após a primeira resposta)</span>"]
     for d in sessions:
         model = d.get("model", {}).get("display_name", "?")
         effort = (d.get("effort") or {}).get("level")
@@ -315,9 +331,9 @@ def claude_tooltip(state, sessions):
 
 
 def codex_tooltip(state, sessions):
-    lines = [f"<b><span color='{COLORS['codex']}'>Codex</span></b> · {state}"]
+    lines = [f"<b><span color='{agent_color('codex')}'>Codex</span></b> · {state}"]
     if not sessions:
-        return lines + ["  <span color='#7a7a7a'>sem dados ainda (aparecem após a primeira resposta)</span>"]
+        return lines + [f"  <span color='{theme('dark_foreground', '#7a7a7a')}'>sem dados ainda (aparecem após a primeira resposta)</span>"]
     for s in sessions:
         effort = s.get("effort")
         info = f"  {s.get('model') or '?'}{f' ({effort})' if effort else ''}"
@@ -353,7 +369,7 @@ def render(found):
         return {"text": "", "class": "empty"}
     icons, per_agent = [], {}
     for ws, _x, _addr, title, agent, state, icon in found:
-        color = COLORS["blocked"] if state == "blocked" else COLORS[agent]
+        color = theme("alert", "#fcee09") if state == "blocked" else agent_color(agent)
         icons.append(f"<span color='{color}'>{html.escape(icon)}</span>")
         label = {"idle": "parado", "working": "trabalhando", "blocked": "aguardando você"}[state]
         where = "em outra aba" if ws == "~" else f"[{ws}]"

@@ -7,7 +7,7 @@ cd "$REPO"
 
 copy_in() {  # $1 = caminho relativo ao $HOME
     local src="$HOME/$1" dst="$REPO/home/$1"
-    [ -e "$src" ] || { echo "  (não existe, pulando) $1"; return; }
+    [ -e "$src" ] || [ -L "$src" ] || { echo "  (não existe, pulando) $1"; return; }
     rm -rf "$dst"; mkdir -p "$(dirname "$dst")"
     cp -a "$src" "$dst"
     find "$dst" \( -name '*.bak' -o -name '*.bak-*' -o -name '__pycache__' \) -prune -exec rm -rf {} + 2>/dev/null || true
@@ -22,8 +22,6 @@ grep -vE '^\s*(#|$)' dotfiles.txt | while IFS= read -r path; do copy_in "$path";
 echo "==> Sistema (/etc)"
 mkdir -p system/etc/greetd
 cp /etc/greetd/config.toml /etc/greetd/regreet.toml /etc/greetd/regreet.css system/etc/greetd/ 2>/dev/null || true
-mkdir -p system/usr/share/backgrounds/regreet
-cp /usr/share/backgrounds/regreet/wallpaper.png system/usr/share/backgrounds/regreet/ 2>/dev/null || true
 
 echo "==> Extras"
 mkdir -p extras/firefox extras/code-theme
@@ -31,11 +29,13 @@ prof=$(find "$HOME/.config/mozilla/firefox" "$HOME/.mozilla/firefox" -maxdepth 1
 if [ -n "$prof" ]; then
     cp "$prof/user.js" extras/firefox/ 2>/dev/null || true
     rm -rf extras/firefox/chrome && cp -a "$prof/chrome" extras/firefox/ 2>/dev/null || true
+    rm -f extras/firefox/chrome/theme.css  # link para as cores do theme-set, recriado na instalação
 fi
-theme=$(find "$HOME/.vscode-oss/extensions" -maxdepth 1 -name 'romeu.cyber-arch-theme-*' 2>/dev/null | head -1 || true)
+# Só o package.json: as cores da extensão são geradas pelo theme-set
+theme=$(find "$HOME/.vscode-oss/extensions" -maxdepth 1 -name 'romeu.theme-picker-*' 2>/dev/null | head -1 || true)
 if [ -n "$theme" ]; then
     rm -rf extras/code-theme/extension && mkdir -p extras/code-theme/extension
-    cp "$theme/package.json" extras/code-theme/extension/ && cp -a "$theme/themes" extras/code-theme/extension/
+    cp "$theme/package.json" extras/code-theme/extension/
 fi
 
 echo "==> Pacotes (pacman explícitos + flatpak)"

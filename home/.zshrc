@@ -2,11 +2,10 @@
 export PATH="$HOME/.local/bin:$PATH"
 
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME=""  # o prompt é do Starship (~/.config/starship.toml)
+ZSH_THEME=""  # o prompt é do Starship (config gerada pelo theme-set, ver abaixo)
 
 # zsh-autosuggestions: sugere em cinza o resto do comando com base no histórico (→ aceita)
 # (vem do pacman; link em ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions)
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#6b4a52"   # tom apagado da paleta Cyber Arch
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)  # histórico primeiro, depois a completação normal
 
 # zsh-syntax-highlighting deve ser o último plugin
@@ -14,7 +13,12 @@ plugins=(git sudo zsh-autosuggestions zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
-# Prompt Starship com as cores do tema Cyber Arch
+# Cores do tema atual (theme-set): o prompt do Starship e a cor das sugestões.
+# O arquivo do zsh é relido a cada prompt, então um terminal aberto acompanha a troca de tema.
+export STARSHIP_CONFIG="$HOME/.config/theme/current/starship.toml"
+_theme_colors() { [[ -r ~/.config/theme/current/zsh.zsh ]] && source ~/.config/theme/current/zsh.zsh }
+_theme_colors
+precmd_functions+=(_theme_colors)
 command -v starship >/dev/null && eval "$(starship init zsh)"
 
 export EDITOR=nano

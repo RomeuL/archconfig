@@ -1,10 +1,12 @@
-/* Cyber Arch — nova aba e página inicial */
+/* Nova aba e página inicial com as cores do tema atual (theme.css: ver userChrome.css) */
+@import "theme.css";
+
 @-moz-document url("about:newtab"), url("about:home"), url("about:blank") {
   body {
-    --newtab-background-color: #080808 !important;
-    --newtab-background-color-secondary: #0f0f0f !important;
-    --newtab-text-primary-color: #ff003c !important;
-    --newtab-primary-action-background: #00f0ff !important;
-    background-color: #080808 !important;
+    --newtab-background-color: var(--tp-bg) !important;
+    --newtab-background-color-secondary: var(--tp-bg2) !important;
+    --newtab-text-primary-color: var(--tp-foreground) !important;
+    --newtab-primary-action-background: var(--tp-active) !important;
+    background-color: var(--tp-bg) !important;
   }
 }

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Menu (wofi) para trocar o tema do sistema: SUPER+SHIFT+T ou "Trocar Tema" no launcher.
+# Escolher o tema que já está ativo troca para o próximo papel de parede dele.
+set -uo pipefail
+bin="$(dirname "$(readlink -f "$0")")"
+
+mapfile -t rows < <("$bin/theme-set" --menu 2>/dev/null)
+[ "${#rows[@]}" -gt 0 ] || { notify-send "Tema" "Nenhum tema instalado (theme-get <tema>)"; exit 1; }
+
+choice="$(printf '%s\n' "${rows[@]#*$'\t'}" |
+    wofi --dmenu --allow-markup --prompt "Tema" --cache-file /dev/null)" || exit 0
+
+# O wofi pode devolver a linha com ou sem o markup das cores: compara só o texto
+plain() { sed -e 's/<[^>]*>//g' <<<"$1"; }
+for row in "${rows[@]}"; do
+    if [ "$(plain "${row#*$'\t'}")" = "$(plain "$choice")" ]; then
+        if ! err="$("$bin/theme-set" "${row%%$'\t'*}" 2>&1 >/dev/null)"; then
+            notify-send -u critical "Tema" "$err"
+            exit 1
+        fi
+        exit 0
+    fi
+done

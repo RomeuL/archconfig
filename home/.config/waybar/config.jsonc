@@ -96,6 +96,7 @@
     "bluetooth": {
         "format": "󰂯",
         "format-disabled": "󰂲",
+        "format-no-controller": "",
         "format-connected": "󰂱 {num_connections}",
         "tooltip-format-connected": "{device_enumerate}",
         "tooltip-format-enumerate-connected": "{device_alias}",

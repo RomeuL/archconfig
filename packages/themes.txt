@@ -1,0 +1,10 @@
+# Temas do Omarchy baixados pelo install.sh (theme-get). Um por linha; "#" é comentário.
+# Todos os disponíveis: theme-get --list
+tokyo-night
+catppuccin
+catppuccin-latte
+gruvbox
+nord
+rose-pine
+kanagawa
+everforest

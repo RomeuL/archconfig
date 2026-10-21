@@ -5,7 +5,6 @@
 .zshrc
 .bashrc
 .gitconfig
-.config/starship.toml
 .config/fastfetch
 
 # Hyprland e desktop
@@ -31,6 +30,16 @@
 .claude/settings.json
 .claude/statusline.py
 .claude/hooks
+
+# Temas (theme-set, theme-pick, theme-get). Os temas do Omarchy não entram aqui:
+# o install.sh baixa de novo os de packages/themes.txt
+.config/theme/templates
+.config/theme/themes/cyber-arch
+.local/bin/theme-set
+.local/bin/theme-pick
+.local/bin/theme-get
+.local/share/applications/theme-pick.desktop
+.local/share/color-schemes/TemaDoSistema.colors
 
 # Instalador/removedor de pacotes no launcher
 .local/bin/pkg-install

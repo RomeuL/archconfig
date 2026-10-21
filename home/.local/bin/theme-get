@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# Baixa temas no formato do Omarchy para ~/.config/theme/themes/ (depois: theme-set <tema>).
+#
+# Uso:
+#   theme-get <tema>...   temas oficiais do Omarchy (ex.: theme-get tokyo-night nord)
+#   theme-get <url-git>   tema da comunidade (repositório no formato do Omarchy)
+#   theme-get --list      temas oficiais disponíveis (* = já instalado)
+#
+# Só copia dados: colors.toml, alacritty.toml, light.mode, preview.png e as imagens de
+# backgrounds/. Scripts e configs que viriam junto (lua, terminais...) ficam de fora.
+set -euo pipefail
+
+DEST="$HOME/.config/theme/themes"
+OMARCHY="https://github.com/basecamp/omarchy.git"
+
+valid_name() { [[ "$1" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; }
+
+# $1 = pasta baixada, $2 = nome do tema
+copy_theme() {
+    local src="$1" name="$2" dst="$DEST/$2" f
+    if [ ! -f "$src/colors.toml" ] && [ ! -f "$src/alacritty.toml" ]; then
+        echo "  $name: sem colors.toml, pulando" >&2
+        return
+    fi
+    rm -rf "$dst"
+    mkdir -p "$dst/backgrounds"
+    for f in colors.toml alacritty.toml light.mode preview.png; do
+        if [ -f "$src/$f" ] && [ ! -L "$src/$f" ]; then cp "$src/$f" "$dst/"; fi
+    done
+    # -type f pula symlinks, que poderiam apontar para fora do tema
+    if [ -d "$src/backgrounds" ]; then
+        find "$src/backgrounds" -maxdepth 1 -type f \
+            \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) \
+            -exec cp {} "$dst/backgrounds/" \;
+    fi
+    echo "  $name ($(find "$dst/backgrounds" -type f | wc -l) papéis de parede)"
+}
+
+if [ "$#" -eq 0 ]; then
+    sed -n '2,10s/^# \{0,1\}//p' "$0"
+    exit 1
+fi
+
+if [ "$1" = "--list" ]; then
+    curl -fsSL https://api.github.com/repos/basecamp/omarchy/contents/themes |
+        python3 -c 'import json, sys; print("\n".join(e["name"] for e in json.load(sys.stdin) if e["type"] == "dir"))' |
+        while IFS= read -r name; do
+            if [ -d "$DEST/$name" ]; then echo "* $name"; else echo "  $name"; fi
+        done
+    exit
+fi
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+mkdir -p "$DEST"
+
+official=()
+for arg in "$@"; do
+    case "$arg" in
+        http://*|https://*|git@*)
+            name="$(basename "${arg%.git}")"
+            name="${name#omarchy-}"; name="${name%-theme}"; name="${name,,}"
+            valid_name "$name" || { echo "Nome de tema inválido: $name" >&2; exit 1; }
+            git clone -q --depth 1 "$arg" "$tmp/$name"
+            copy_theme "$tmp/$name" "$name" ;;
+        *)
+            valid_name "$arg" || { echo "Nome de tema inválido: $arg" >&2; exit 1; }
+            official+=("$arg") ;;
+    esac
+done
+
+if [ "${#official[@]}" -gt 0 ]; then
+    # Clone parcial: baixa só as pastas dos temas pedidos, não o repositório inteiro
+    patterns=()
+    for name in "${official[@]}"; do patterns+=("/themes/$name/"); done
+    git clone -q --depth 1 --filter=blob:none --sparse "$OMARCHY" "$tmp/omarchy"
+    git -C "$tmp/omarchy" sparse-checkout set --no-cone "${patterns[@]}"
+    for name in "${official[@]}"; do
+        if [ -d "$tmp/omarchy/themes/$name" ]; then
+            copy_theme "$tmp/omarchy/themes/$name" "$name"
+        else
+            echo "  $name: não existe no Omarchy (veja theme-get --list)" >&2
+        fi
+    done
+fi

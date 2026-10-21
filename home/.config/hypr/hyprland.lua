@@ -133,12 +133,7 @@ hl.config({
         gaps_out = 10,
 
         border_size = 2,
-
-        col = {
-            -- Cyber-Arch (Cyberpunk 2077): ciano na ativa, vermelho nas inativas
-            active_border   = "rgba(00f0ffff)",
-            inactive_border = "rgba(ff003cff)",
-        },
+        -- As cores das bordas vêm do tema atual (logo depois deste bloco)
 
         -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
         resize_on_border = false,
@@ -177,6 +172,13 @@ hl.config({
         enabled = true,
     },
 })
+
+-- Cores do tema atual (geradas pelo theme-set em ~/.config/theme/current). Um erro aqui
+-- não pode derrubar o resto da config: só avisa e fica com as cores padrão.
+local themeOk, themeErr = pcall(dofile, os.getenv("HOME") .. "/.config/theme/current/hyprland.lua")
+if not themeOk then
+    pcall(hl.notification.create, { text = "Tema não carregado: " .. tostring(themeErr), timeout = 8000 })
+end
 
 -- Default curves and animations, see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/
 hl.curve("easeOutQuint",   { type = "bezier", points = { {0.23, 1},    {0.32, 1}    } })
@@ -308,6 +310,7 @@ hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(editor))
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/teamspeak"))
+hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/theme-pick"))
 local closeWindowBind = hl.bind(mainMod .. " + W", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))

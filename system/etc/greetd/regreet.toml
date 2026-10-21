@@ -1,5 +1,6 @@
 [background]
-path = "/usr/share/backgrounds/regreet/wallpaper.png"
+# papel de parede do tema atual (copiado pelo theme-set)
+path = "/var/lib/theme-set/background"
 fit = "Cover"
 
 [GTK]

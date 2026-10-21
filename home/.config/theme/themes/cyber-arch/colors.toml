@@ -1,0 +1,41 @@
+# Cyber Arch: paleta Cyberpunk 2077 (vermelho #ff003c, ciano #00f0ff, amarelo #fcee09),
+# baseada em github.com/V1xEr3bus/Cyber-Arch. Formato do Omarchy, mais os papéis extras
+# deste sistema (active, highlight, alert), que nos outros temas viram o accent e o yellow.
+mode = "dark"
+
+accent = "#ff003c"
+active = "#00f0ff"       # workspace ativo, item selecionado
+highlight = "#fcee09"    # hover, texto digitado nos menus
+alert = "#fcee09"        # avisos e notificações urgentes
+hyprland_active_border = "#00f0ff"
+hyprland_inactive_border = "#ff003c"
+
+background = "#000000"
+dark_background = "#060606"
+lighter_background = "#0f0f0f"
+foreground = "#ff003c"
+dark_foreground = "#7a7a7a"   # texto secundário (sugestões do zsh, tooltips)
+selection = "#1a1a1a"
+selection_foreground = "#00f0ff"
+cursor = "#00f0ff"
+muted = "#5a1a26"
+
+red = "#ff003c"
+green = "#00ff9c"
+yellow = "#fcee09"
+blue = "#0a84ff"
+magenta = "#d57bff"
+cyan = "#00f0ff"
+
+bright_red = "#ff335f"
+bright_green = "#36ffb9"
+bright_yellow = "#fde93f"
+bright_blue = "#4aa3ff"
+bright_magenta = "#c592ff"
+bright_cyan = "#5af7ff"
+
+# Preto, branco e cinzas do terminal (diferentes do background/foreground)
+color0 = "#060606"
+color7 = "#eeffff"
+color8 = "#1a1a1a"
+color15 = "#ffffff"

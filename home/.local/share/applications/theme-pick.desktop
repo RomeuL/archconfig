@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Trocar Tema
+Comment=Escolher o tema do sistema (cores e papel de parede)
+Exec=__HOME__/.local/bin/theme-pick
+Icon=preferences-desktop-theme
+Terminal=false
+Categories=Settings;
