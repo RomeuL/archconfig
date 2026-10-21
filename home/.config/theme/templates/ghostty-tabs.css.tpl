@@ -7,7 +7,7 @@ tabbar .box {
 }
 tabbar tab {
     color: rgba({{ foreground_rgb }}, 0.7);
-    border-radius: 8px 8px 0 0;
+    border-radius: {{ rounding_small }}px {{ rounding_small }}px 0 0;
 }
 tabbar tab:hover {
     background-color: rgba({{ accent_rgb }}, 0.12);

@@ -1,0 +1,38 @@
+{
+  "$schema": "/etc/xdg/swaync/configSchema.json",
+  "positionX": "right",
+  "positionY": "top",
+  "layer": "overlay",
+  "control-center-layer": "top",
+  "layer-shell": true,
+  "layer-shell-cover-screen": true,
+  "cssPriority": "user",
+  "control-center-margin-top": 8,
+  "control-center-margin-right": 8,
+  "control-center-width": 420,
+  "control-center-height": 560,
+  "fit-to-screen": false,
+  "keyboard-shortcuts": true,
+  "notification-grouping": true,
+  "relative-timestamps": true,
+  "image-visibility": "when-available",
+  "hide-on-clear": true,
+  "hide-on-action": true,
+  "text-empty": "Nenhuma notificação",
+  "notification-visibility": {
+    "nunca-aparecer-baixa": { "state": "muted", "urgency": "Low", "summary": ".*" },
+    "nunca-aparecer-normal": { "state": "muted", "urgency": "Normal", "summary": ".*" },
+    "nunca-aparecer-critica": { "state": "muted", "urgency": "Critical", "summary": ".*" }
+  },
+  "widgets": ["title", "notifications"],
+  "widget-config": {
+    "title": {
+      "text": "Notificações",
+      "clear-all-button": true,
+      "button-text": "Limpar"
+    },
+    "notifications": {
+      "vexpand": true
+    }
+  }
+}

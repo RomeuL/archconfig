@@ -1,0 +1,43 @@
+# Estilo padrão de todos os temas: fontes, cantos, bordas e espaçamentos.
+# Um tema pode trocar qualquer chave com um style.toml na pasta dele (só o que muda).
+# Depois de editar: theme-set --refresh
+
+# Fontes (precisam estar instaladas; se não estiverem, fica a daqui)
+font = "JetBrainsMono Nerd Font"        # barra, menus, notificações, bloqueio e login
+font_size = 15                          # barra (px)
+small_font_size = 11                    # menus e notificações (pt)
+mono_font = "JetBrainsMono Nerd Font"   # terminal
+mono_font_size = 15                     # terminal (pt)
+
+# Cantos (0 = retos)
+rounding = 15                           # janelas, ilhas da barra, menus, notificações, bloqueio
+rounding_small = 10                     # itens dos menus, dicas da barra, abas
+
+# Janelas
+border_size = 2
+gaps_in = 5                             # entre janelas
+gaps_out = 10                           # entre as janelas e a borda da tela
+opacity_active = 0.90
+opacity_inactive = 0.80
+blur = true                             # vidro fosco atrás das janelas transparentes
+animations = true
+
+# Sombra das janelas: sharp = borda dura (pixel art), offset = deslocamento [x, y]
+shadow = true
+shadow_range = 8
+shadow_sharp = false
+shadow_offset = [0, 0]
+shadow_color = "#080808cc"
+
+# Brilho neon em volta da janela ativa
+glow = false
+glow_range = 8
+glow_color = "#00000000"
+
+# Tela de bloqueio: desfoque da imagem (passadas; 0 = nítida) e fundo do campo de senha
+# (0 = transparente; numa imagem nítida, um fundo ajuda a ler)
+lock_blur = 3
+lock_field_opacity = 0.0
+
+# Tela de login: opacidade do painel sobre o papel de parede
+login_opacity = 0.75

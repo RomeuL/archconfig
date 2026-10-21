@@ -1,11 +1,3 @@
-/* Cyber-Arch — portado do tema cyberpunk.rasi do rofi; as cores vêm do tema atual (theme-set) */
-/* caminho absoluto: o wofi carrega o CSS como texto, então um caminho relativo não funciona */
-@import url("__HOME__/.config/theme/current/colors.css");
-window { background-color: alpha(@background, 0.92); border: 2px solid @accent; border-radius: 15px; font-family: "JetBrainsMono Nerd Font"; }
-#input { margin: 8px; padding: 6px 10px; border: 2px solid @active; border-radius: 10px; background: @background; color: @highlight; }
-#input:focus { box-shadow: none; }
-#inner-box, #outer-box { margin: 4px; }
-#entry { padding: 4px 8px; border: 2px solid transparent; border-radius: 10px; }
-#entry:selected { background-color: transparent; border: 2px solid @active; }
-#text { color: @foreground; }
-#text:selected { color: @active; }
+/* O estilo do menu vem do tema atual (template em ~/.config/theme/templates/wofi.css.tpl).
+   Caminho absoluto: o wofi carrega o CSS como texto, então um caminho relativo não funciona */
+@import url("__HOME__/.config/theme/current/wofi.css");

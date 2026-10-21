@@ -1,23 +1,4 @@
-/* Cyber-Arch; as cores vêm do tema atual: o theme-set copia colors.css para /var/lib/theme-set,
-   que o usuário greeter consegue ler (ele não enxerga o $HOME) */
-@import url("file:///var/lib/theme-set/colors.css");
-* { font-family: "JetBrainsMono Nerd Font", sans-serif; }
-window { background-color: @background; color: @active; }
-frame, .background { background-color: alpha(@background, 0.75); }
-frame { border: 2px solid @accent; border-radius: 0; }
-label { color: @active; }
-entry {
-  background-color: @surface;
-  color: @highlight;
-  border: 1px solid @active;
-  border-radius: 0;
-}
-entry:focus { border-color: @highlight; }
-button {
-  background: @surface;
-  color: @active;
-  border: 1px solid @accent;
-  border-radius: 0;
-}
-button:hover { background: @accent; color: @background; }
-button.suggested-action { background: @accent; color: @background; }
+/* O estilo da tela de login vem do tema atual: o theme-set gera login.css (template em
+   ~/.config/theme/templates/login.css.tpl) e copia para /var/lib/theme-set, que o usuário
+   greeter consegue ler (ele não enxerga o $HOME) */
+@import url("file:///var/lib/theme-set/login.css");

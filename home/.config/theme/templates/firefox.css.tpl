@@ -14,4 +14,5 @@
   --tp-bg: {{ dark_background }};
   --tp-bg2: {{ lighter_background }};
   --tp-line: {{ mix background accent 16% }};
+  --tp-radius: {{ rounding_small }}px;
 }

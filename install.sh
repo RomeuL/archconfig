@@ -94,7 +94,7 @@ step_system() {
     sudo install -Dm644 "$REPO/system/etc/greetd/config.toml"  /etc/greetd/config.toml
     sudo install -Dm644 "$REPO/system/etc/greetd/regreet.toml" /etc/greetd/regreet.toml
     sudo install -Dm644 "$REPO/system/etc/greetd/regreet.css"  /etc/greetd/regreet.css
-    # Cores e papel de parede da tela de login seguem o tema: o theme-set escreve nesta pasta,
+    # Estilo e papel de parede da tela de login seguem o tema: o theme-set escreve nesta pasta,
     # que o usuário greeter consegue ler (ele não enxerga o $HOME)
     sudo install -d -m 755 -o "$USER" -g "$(id -gn)" /var/lib/theme-set
     "$HOME/.local/bin/theme-set" --refresh >/dev/null 2>&1 || true

@@ -14,7 +14,7 @@ qt5-wayland
 qt6-wayland
 waybar
 wofi
-mako
+swaync
 brightnessctl
 network-manager-applet
 networkmanager
@@ -60,6 +60,7 @@ noto-fonts-emoji
 otf-font-awesome
 ttf-jetbrains-mono
 ttf-jetbrains-mono-nerd
+ttf-bigblueterminal-nerd
 gnome-themes-extra
 breeze
 qt6ct

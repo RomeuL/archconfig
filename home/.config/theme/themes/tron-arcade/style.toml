@@ -1,0 +1,31 @@
+# Tron Arcade: pixel art com neon. Fonte de tela de PC antigo (VGA 8x16, por isso tamanhos
+# de 16 px: 12 pt), cantos retos, janelas nítidas (sem vidro fosco) com brilho ciano e uma
+# sombra dura deslocada, como num jogo 8-bit. Só o que muda em relação a ~/.config/theme/style.toml.
+font = "BigBlueTermPlus Nerd Font"
+font_size = 16
+small_font_size = 12
+mono_font = "BigBlueTermPlus Nerd Font"
+mono_font_size = 12
+
+rounding = 0
+rounding_small = 0
+
+border_size = 2
+gaps_in = 6
+gaps_out = 14
+opacity_active = 1.0
+opacity_inactive = 0.93
+blur = false
+
+shadow_range = 2
+shadow_sharp = true
+shadow_offset = [6, 6]
+shadow_color = "#00e5ff26"
+
+glow = true
+glow_range = 10
+glow_color = "#00e5ff55"
+
+lock_blur = 0
+lock_field_opacity = 0.85
+login_opacity = 0.92

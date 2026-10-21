@@ -85,7 +85,7 @@ Trocar de tema muda o papel de parede, o modo claro/escuro e as cores de tudo:
 
 | Quando | O quê |
 |---|---|
-| Na hora | Hyprland (bordas), Waybar, wofi, mako, hyprlock, Ghostty, Starship, sugestões do zsh, Fastfetch (cores ANSI do terminal), tooltip dos agentes, apps GTK e o Code OSS (sem recarregar a janela) |
+| Na hora | Hyprland (bordas), Waybar, wofi, central de notificações (swaync), hyprlock, Ghostty, Starship, sugestões do zsh, Fastfetch (cores ANSI do terminal), tooltip dos agentes, apps GTK e o Code OSS (sem recarregar a janela) |
 | Ao reabrir o app | Firefox, Dolphin e outros apps Qt/KDE |
 | No próximo login | tela de login (regreet) |
 
@@ -94,6 +94,19 @@ Escolher o tema que já está ativo passa para o próximo papel de parede dele.
 Os temas usam o formato do [Omarchy](https://github.com/basecamp/omarchy): uma pasta em
 `~/.config/theme/themes/<tema>/` com `colors.toml` (a paleta) e `backgrounds/` (papéis de
 parede), mais um `lock.<ext>` opcional para a tela de bloqueio.
+
+Temas daqui: **Cyber Arch** (o padrão) e **Tron Arcade** (Tron com fliperama em pixel art:
+fonte BigBlueTerminal de PC antigo, cantos retos, brilho neon nas janelas, barra de HUD de ponta
+a ponta e papéis de parede de grade neon gerados por `gerar-papeis-de-parede.py`).
+
+Além das cores, um tema pode mudar o estilo do sistema com um `style.toml` na pasta dele, só
+com o que muda em relação ao padrão (`~/.config/theme/style.toml`): fontes e tamanhos, cantos
+(`rounding`), bordas e espaços entre janelas, opacidade, vidro fosco, sombra (`shadow_sharp` e
+`shadow_offset` dão a sombra dura de pixel art), brilho neon (`glow`) e a tela de bloqueio.
+Para mudar algo mais a fundo, o tema traz um template próprio com o nome de um padrão: o Tron
+Arcade traz `waybar.css.tpl` e `waybar.jsonc.tpl` (outra barra e outros rótulos de workspace).
+Uma fonte recém-instalada só aparece nos apps abertos depois da instalação: reabra-os (ou saia
+e entre de novo na sessão).
 
 | Comando | O que faz |
 |---|---|
@@ -108,6 +121,9 @@ e as configs dos apps importam esses arquivos. Para um app novo seguir o tema, b
 template novo e um import na config dele. Alguns apps leem os arquivos gerados direto:
 
 - o prompt do Starship é o próprio `starship.toml` gerado (o `.zshrc` aponta `STARSHIP_CONFIG` para ele);
+- o estilo da Waybar, do wofi e da tela de login são os gerados (`waybar.css`, `wofi.css`,
+  `login.css`), e a altura, as margens e os rótulos dos workspaces vêm do `waybar.jsonc` que a
+  `~/.config/waybar/config.jsonc` inclui;
 - `~/.config/kdeglobals` e `~/.config/qt6ct/qt6ct.conf` são links para os gerados, então mude o
   visual do Qt/KDE nos templates, não pelo qt6ct;
 - o theme-set copia as cores para fora de `~/.config/theme` onde é preciso: na extensão "Tema do
@@ -116,6 +132,7 @@ template novo e um import na config dele. Alguns apps leem os arquivos gerados d
 
 Um tema pode trazer um arquivo pronto com o nome de um template, que substitui o gerado: o
 Cyber Arch traz o seu `vscode-theme.json`, feito à mão (o dos outros temas vem do template do Omarchy).
+O `theme-get` só baixa dados (paleta e imagens), nunca templates ou arquivos prontos.
 
 Além das chaves do Omarchy, o `colors.toml` aceita três papéis extras, que o Cyber Arch usa:
 `active` (ativo/selecionado), `highlight` (hover) e `alert` (avisos). Nos temas do Omarchy eles
@@ -123,6 +140,9 @@ viram o `accent`, o `accent` e o `yellow`.
 
 ## Observações
 
+- **Notificações:** nunca aparecem sozinhas na tela; ficam guardadas na central (swaync). O sino
+  da Waybar, ao lado da captura de tela, ganha um selo quando chega alguma: clique para abrir,
+  botão direito para limpar.
 - **Monitores:** as regras do `hyprland.lua` usam a tela do notebook (`eDP-1`) e dois monitores
   externos identificados pelo modelo. Os workspaces 1–5 ficam no `eDP-1`; num PC de mesa (sem
   essa saída), o `~/.config/hypr/workspaces.lua` os põe no primeiro monitor conectado, e só a

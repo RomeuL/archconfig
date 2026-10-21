@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Troca o tema do sistema: cores, papel de parede e modo claro/escuro.
+"""Troca o tema do sistema: cores, papel de parede, modo claro/escuro e estilo (fontes, cantos,
+espaçamentos).
 
 Uso:
   theme-set <tema>     aplica o tema (de novo no tema atual: próximo papel de parede)
@@ -10,12 +11,17 @@ Uso:
 Cada tema é uma pasta em ~/.config/theme/themes/<tema>/ no formato do Omarchy:
 colors.toml (paleta) e backgrounds/ (papéis de parede), mais um lock.<ext> opcional
 para a tela de bloqueio. Cada ~/.config/theme/templates/<arquivo>.tpl vira
-~/.config/theme/current/<arquivo>, que é o que as configs dos apps importam. Um arquivo
-com o mesmo nome na pasta do tema (ex.: vscode-theme.json) substitui o gerado.
+~/.config/theme/current/<arquivo>, que é o que as configs dos apps importam. Na pasta do
+tema, um <arquivo>.tpl substitui o template padrão e um <arquivo> pronto (ex.:
+vscode-theme.json) substitui o gerado.
+
+Estilo: ~/.config/theme/style.toml tem os valores padrão (fontes, cantos, espaçamentos...)
+e um style.toml na pasta do tema troca só as chaves que ele tiver.
 
 Nos templates: {{ cor }} (#rrggbb), {{ cor_strip }} (rrggbb), {{ cor_rgb }} (r,g,b),
 {{ mix cor1 cor2 15% }}, {{ hypr_gradient chave fallback }} (borda do Hyprland em Lua),
-{{ by_mode valor-escuro valor-claro }}, {{ theme_title }}, {{ theme_type }} e {{ home }}.
+{{ by_mode valor-escuro valor-claro }}, as chaves do style.toml ({{ font }}, {{ rounding }}...),
+{{ theme_title }}, {{ theme_type }} e {{ home }}.
 """
 import json
 import os
@@ -31,6 +37,7 @@ ROOT = Path.home() / ".config/theme"
 THEMES = ROOT / "themes"
 TEMPLATES = ROOT / "templates"
 CURRENT = ROOT / "current"
+STYLE = ROOT / "style.toml"
 STATE = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state") / "theme-set.json"
 IMAGES = {".png", ".jpg", ".jpeg", ".webp"}
 # Pasta legível pelo usuário greeter (a tela de login não enxerga o $HOME); criada pelo install.sh
@@ -49,6 +56,22 @@ SHORT_NAMES = {"bg": "background", "dark_bg": "dark_background", "darker_bg": "d
                "lighter_bg": "lighter_background", "fg": "foreground", "dark_fg": "dark_foreground",
                "light_fg": "light_foreground", "bright_fg": "bright_foreground"}
 ANSI = ["red", "green", "yellow", "blue", "magenta", "cyan"]  # color1-6 (bright_*: color9-14)
+
+# Chaves do style.toml e o que cada uma aceita (o arquivo pode vir de um tema baixado):
+# (mín, máx) inteiros ou decimais, bool, nome de fonte, cor #rrggbb[aa] ou deslocamento [x, y]
+STYLE_KEYS = {
+    "font": "font", "mono_font": "font",
+    "font_size": (6, 48), "small_font_size": (6, 32), "mono_font_size": (6, 48),
+    "rounding": (0, 40), "rounding_small": (0, 40), "border_size": (0, 10),
+    "gaps_in": (0, 60), "gaps_out": (0, 120),
+    "opacity_active": (0.1, 1.0), "opacity_inactive": (0.1, 1.0),
+    "blur": bool, "animations": bool, "lock_blur": (0, 10), "lock_field_opacity": (0.0, 1.0), "login_opacity": (0.0, 1.0),
+    "shadow": bool, "shadow_range": (0, 100), "shadow_sharp": bool, "shadow_offset": "offset",
+    "shadow_color": "color",
+    "glow": bool, "glow_range": (0, 100), "glow_color": "color",
+}
+FONT_RE = re.compile(r"[A-Za-z0-9 ._+-]{1,64}")
+_fonts = None
 ALACRITTY = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"]
 
 
@@ -189,6 +212,72 @@ def resolve(colors, extra, folder):
     return c, mode
 
 
+def style_value(key, value):
+    """Valor do style.toml já no formato dos templates, ou None se for inválido."""
+    kind = STYLE_KEYS[key]
+    if kind is bool:
+        return ("true" if value else "false") if isinstance(value, bool) else None
+    if kind == "font":
+        return value if isinstance(value, str) and FONT_RE.fullmatch(value) else None
+    if kind == "color":
+        m = isinstance(value, str) and re.fullmatch(r"#([0-9a-fA-F]{6})([0-9a-fA-F]{2})?", value)
+        return f"rgba({m.group(1)}{m.group(2) or 'ff'})".lower() if m else None
+    if kind == "offset":
+        ok = (isinstance(value, list) and len(value) == 2
+              and all(type(v) is int and -50 <= v <= 50 for v in value))
+        return f"{{ {value[0]}, {value[1]} }}" if ok else None
+    low, high = kind
+    if type(value) not in (int, float) or not low <= value <= high:
+        return None
+    if type(low) is int:
+        return str(value) if type(value) is int else None
+    return f"{value:g}"
+
+
+def font_installed(name):
+    global _fonts
+    if _fonts is None:
+        try:
+            out = subprocess.run(["fc-list", ":", "family"], capture_output=True, text=True, timeout=15).stdout
+            _fonts = {family.strip() for line in out.splitlines() for family in line.split(",")}
+        except (OSError, subprocess.TimeoutExpired):
+            _fonts = set()
+    return not _fonts or name in _fonts  # sem fc-list, confia no nome
+
+
+def read_style(theme):
+    """Fontes, cantos e espaçamentos: o style.toml padrão com o do tema por cima."""
+    try:
+        defaults = tomllib.loads(STYLE.read_text())
+    except (OSError, tomllib.TOMLDecodeError) as e:
+        fail(f"não consegui ler {STYLE} ({e})")
+    style = {}
+    for key in STYLE_KEYS:
+        style[key] = style_value(key, defaults[key]) if key in defaults else None
+        if style[key] is None:
+            fail(f"{STYLE}: '{key}' faltando ou inválido")
+    base = dict(style)
+
+    own = THEMES / theme / "style.toml"
+    try:
+        data = tomllib.loads(own.read_text()) if own.is_file() else {}
+    except (OSError, tomllib.TOMLDecodeError) as e:
+        print(f"theme-set: {theme}: ignorando style.toml ({e})", file=sys.stderr)
+        data = {}
+    for key, raw in data.items():
+        value = style_value(key, raw) if key in STYLE_KEYS else None
+        if value is None:
+            print(f"theme-set: {theme}: ignorando {key} = {raw!r} no style.toml", file=sys.stderr)
+        else:
+            style[key] = value
+
+    for key in ("font", "mono_font"):
+        if not font_installed(style[key]):
+            print(f"theme-set: {theme}: fonte '{style[key]}' não instalada, usando '{base[key]}'", file=sys.stderr)
+            style[key] = base[key]
+    return style
+
+
 def hypr_gradient(spec):
     """'#00f0ff' -> "rgba(00f0ffff)"; 'rgba(..) rgba(..) 45deg' -> { colors = {...}, angle = 45 }"""
     colors, angle = [], None
@@ -262,7 +351,7 @@ def pick_background(theme, folder, cycle):
     """Papel de parede do tema: o último usado nele, ou o próximo quando cycle=True."""
     images = sorted(p for p in (folder / "backgrounds").glob("*") if safe_image(p, folder))
     if not images:
-        return None, 0, 0
+        return None
     state = load_state()
     names = [p.name for p in images]
     i = names.index(state[theme]) if state.get(theme) in names else 0
@@ -271,7 +360,7 @@ def pick_background(theme, folder, cycle):
     state[theme] = names[i]
     STATE.parent.mkdir(parents=True, exist_ok=True)
     STATE.write_text(json.dumps(state, indent=2) + "\n")
-    return images[i], i + 1, len(images)
+    return images[i]
 
 
 def run(*cmd):
@@ -305,9 +394,9 @@ def export_outside():
             link.unlink(missing_ok=True)
             link.symlink_to(target)
 
-    # Tela de login: cores e papel de parede onde o usuário greeter consegue ler
+    # Tela de login: estilo e papel de parede onde o usuário greeter consegue ler
     if LOGIN.is_dir() and os.access(LOGIN, os.W_OK):
-        for name in ("colors.css", "background"):
+        for name in ("login.css", "background"):
             source = (CURRENT / name).resolve()
             marker = LOGIN / f".{name}.source"
             if not source.is_file() or (name == "background" and marker.exists()
@@ -330,7 +419,7 @@ def reload_apps(mode):
         if background.exists():
             run("hyprctl", "hyprpaper", "wallpaper", f",{background.resolve()},cover")
     run("pkill", "-SIGUSR2", "-x", "waybar")
-    run("makoctl", "reload")
+    run("swaync-client", "--reload-css")
     run("pkill", "-SIGUSR2", "-x", "ghostty")
 
 
@@ -342,11 +431,19 @@ def apply(theme, cycle):
         previous_mode = json.loads((CURRENT / "palette.json").read_text())["mode"]
     except (OSError, ValueError, KeyError):
         previous_mode = mode
-    background, index, total = pick_background(theme, folder, cycle)
+    background = pick_background(theme, folder, cycle)
     locks = [p for p in sorted(folder.glob("lock.*")) if safe_image(p, folder)]
     lock = locks[0] if locks else background
     ctx = {"theme_name": theme, "theme_title": title(theme), "theme_type": mode, "mode": mode,
-           "home": str(Path.home())}
+           "home": str(Path.home()), **read_style(theme)}
+
+    def own(name):
+        """Arquivo do próprio tema que substitui o padrão (nunca para .lua, que o Hyprland executaria)."""
+        path = folder / name
+        if (not name.removesuffix(".tpl").endswith(".lua") and path.is_file()
+                and path.resolve().is_relative_to(folder.resolve())):
+            return path
+        return None
 
     # Gera tudo numa pasta nova e só depois troca: um erro nunca deixa o tema pela metade
     new, old = ROOT / "current.new", ROOT / "current.old"
@@ -354,15 +451,14 @@ def apply(theme, cycle):
     new.mkdir(parents=True)
     try:
         for tpl in sorted(TEMPLATES.glob("*.tpl")):
-            own = folder / tpl.stem
-            # Arquivo pronto do tema no lugar do gerado (nunca .lua, que o Hyprland executaria)
-            if own.suffix != ".lua" and own.is_file() and own.resolve().is_relative_to(folder.resolve()):
-                shutil.copyfile(own, new / tpl.stem)
+            if ready := own(tpl.stem):
+                shutil.copyfile(ready, new / tpl.stem)
             else:
+                tpl = own(tpl.name) or tpl
                 (new / tpl.stem).write_text(render(tpl.read_text(), ctx, colors, extra))
     except ValueError as e:
         shutil.rmtree(new, ignore_errors=True)
-        fail(f"{tpl.name}: {e}")
+        fail(f"{tpl}: {e}")
     (new / "theme").write_text(theme + "\n")
     # Paleta completa para scripts (ex.: ~/.config/waybar/scripts/agents.py)
     (new / "palette.json").write_text(json.dumps({"theme": theme, "mode": mode, "colors": colors}, indent=2) + "\n")
@@ -385,8 +481,6 @@ def apply(theme, cycle):
         # tinha guardado dessa versão; regravar o arquivo depois da troca faz ele reler
         subprocess.Popen([sys.executable, "-I", os.path.abspath(__file__), "--vscode-sync"],
                          start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    detail = f" · papel de parede {index} de {total}" if total > 1 else ""
-    run("notify-send", "-a", "theme-set", "-t", "2500", "Tema", title(theme) + detail)
 
 
 def menu():

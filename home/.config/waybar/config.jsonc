@@ -1,25 +1,15 @@
 {
+    // Altura, margens e rótulos dos workspaces vêm do tema atual (template em
+    // ~/.config/theme/templates/waybar.jsonc.tpl); o que estiver aqui tem prioridade
+    "include": ["~/.config/theme/current/waybar.jsonc"],
     "layer": "top",
     "position": "top",
-    "height": 30,
-    "spacing": 4,
-    "margin-top": 6,
-    "margin-left": 10,
-    "margin-right": 10,
 
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["custom/codex", "clock", "custom/claude"],
-    "modules-right": ["custom/screenshot", "tray", "pulseaudio", "backlight", "network", "bluetooth", "cpu", "memory", "power-profiles-daemon", "battery", "custom/power"],
+    "modules-right": ["custom/notification", "custom/screenshot", "tray", "pulseaudio", "backlight", "network", "bluetooth", "cpu", "memory", "power-profiles-daemon", "battery", "custom/power"],
 
     "hyprland/workspaces": {
-        // Numeração em kanji, como no Cyber-Arch (z e x continuam com o nome)
-        "format": "{icon}",
-        "format-icons": {
-            "1": "一", "2": "二", "3": "三", "4": "四", "5": "五",
-            "6": "六", "7": "七", "8": "八", "9": "九", "10": "十",
-            "z": "z", "x": "x",
-            "default": "·"
-        },
         "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e+1\" })'",
         "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e-1\" })'"
     },
@@ -61,6 +51,24 @@
             "balanced": "󰊚",
             "power-saver": "󰌪"
         }
+    },
+    // Central de notificações (swaync): as notificações nunca aparecem sozinhas, ficam guardadas
+    // aqui; o sino ganha um selo quando chega alguma
+    "custom/notification": {
+        "format": "{icon}",
+        "format-icons": {
+            "notification": "󱅫", "none": "󰂚",
+            "dnd-notification": "󱅫", "dnd-none": "󰂛",
+            "inhibited-notification": "󱅫", "inhibited-none": "󰂚",
+            "dnd-inhibited-notification": "󱅫", "dnd-inhibited-none": "󰂛"
+        },
+        "tooltip-format": "Notificações\nClique: abrir/fechar\nBotão direito: limpar tudo",
+        "return-type": "json",
+        "exec-if": "command -v swaync-client",
+        "exec": "swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -C -sw",
+        "escape": true
     },
     "custom/screenshot": {
         "format": "󰄀",

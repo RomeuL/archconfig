@@ -1,5 +1,7 @@
-# Cores do terminal no tema {{ theme_title }} (gerado pelo theme-set a partir de
+# Fonte e cores do terminal no tema {{ theme_title }} (gerado pelo theme-set a partir de
 # ~/.config/theme/templates/ghostty.conf.tpl: edite o template, não este arquivo)
+font-family = {{ mono_font }}
+font-size = {{ mono_font_size }}
 background = {{ background }}
 foreground = {{ foreground }}
 cursor-color = {{ cursor }}

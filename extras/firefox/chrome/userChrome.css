@@ -15,7 +15,7 @@
   --tab-selected-bgcolor: var(--tp-bg2) !important;
   --tab-selected-textcolor: var(--tp-active) !important;
   --tab-loading-fill: var(--tp-active) !important;
-  --tab-border-radius: 8px !important;
+  --tab-border-radius: var(--tp-radius) !important;
 
   --toolbar-field-background-color: var(--tp-background) !important;
   --toolbar-field-color: var(--tp-highlight) !important;

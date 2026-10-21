@@ -1,0 +1,38 @@
+# Tron Arcade: a Grade do Tron (ciano neon sobre preto azulado, laranja do "outro lado")
+# com cores de fliperama: amarelo de placar e rosa neon nos avisos.
+mode = "dark"
+
+accent = "#00e5ff"       # ciano neon: linhas, molduras, workspace aceso
+active = "#ff9e1b"       # laranja: item selecionado, data, rótulos
+highlight = "#ffe14d"    # amarelo de placar: hover, texto digitado, relógio
+alert = "#ff2e88"        # rosa neon: avisos e notificações urgentes
+hyprland_active_border = "#00e5ff"
+hyprland_inactive_border = "#123a4a"
+
+background = "#05080d"
+dark_background = "#020406"
+lighter_background = "#0b1824"
+foreground = "#c8f8ff"
+dark_foreground = "#5a8a99"
+selection = "#0e3a4a"
+selection_foreground = "#ffffff"
+cursor = "#ff9e1b"
+muted = "#1d4656"
+
+red = "#ff3355"
+green = "#2fff8f"
+yellow = "#ffe14d"
+blue = "#3b82ff"
+magenta = "#c86bff"
+cyan = "#00e5ff"
+
+bright_red = "#ff6b85"
+bright_green = "#7dffb8"
+bright_yellow = "#fff08a"
+bright_blue = "#7aaaff"
+bright_magenta = "#dda3ff"
+bright_cyan = "#7df2ff"
+
+# Preto e cinza do terminal (o cinza precisa aparecer no fundo escuro)
+color0 = "#0b1824"
+color8 = "#2c5566"

@@ -79,7 +79,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("waybar")
     hl.exec_cmd("hyprpaper")
     hl.exec_cmd("hypridle")
-    hl.exec_cmd("mako")
+    hl.exec_cmd("swaync")  -- notificações: nunca aparecem sozinhas, ficam no sino da Waybar
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
 end)
 
@@ -127,14 +127,10 @@ hl.env("XDG_DATA_DIRS", os.getenv("HOME") .. "/.local/share/flatpak/exports/shar
 -----------------------
 
 -- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
+-- Espaçamentos, bordas, cantos, opacidade, desfoque, sombra, brilho e animações vêm do tema
+-- atual (logo depois deste bloco; valores em ~/.config/theme/style.toml)
 hl.config({
     general = {
-        gaps_in  = 5,
-        gaps_out = 10,
-
-        border_size = 2,
-        -- As cores das bordas vêm do tema atual (logo depois deste bloco)
-
         -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
         resize_on_border = false,
 
@@ -145,36 +141,19 @@ hl.config({
     },
 
     decoration = {
-        rounding       = 15,
         rounding_power = 2,
-
-        -- Change transparency of focused and unfocused windows
-        active_opacity   = 0.90,
-        inactive_opacity = 0.80,
-        dim_inactive     = true,
-
-        shadow = {
-            enabled      = true,
-            range        = 8,
-            render_power = 3,
-            color        = 0xcc080808,
-        },
+        dim_inactive   = true,
 
         blur = {
-            enabled   = true,
             size      = 25,
             passes    = 1,
             vibrancy  = 0.1696,
         },
     },
-
-    animations = {
-        enabled = true,
-    },
 })
 
--- Cores do tema atual (geradas pelo theme-set em ~/.config/theme/current). Um erro aqui
--- não pode derrubar o resto da config: só avisa e fica com as cores padrão.
+-- Visual do tema atual (gerado pelo theme-set em ~/.config/theme/current). Um erro aqui
+-- não pode derrubar o resto da config: só avisa e fica com o visual padrão do Hyprland.
 local themeOk, themeErr = pcall(dofile, os.getenv("HOME") .. "/.config/theme/current/hyprland.lua")
 if not themeOk then
     pcall(hl.notification.create, { text = "Tema não carregado: " .. tostring(themeErr), timeout = 8000 })

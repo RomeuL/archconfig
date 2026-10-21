@@ -1,3 +1,6 @@
+# Vai direto para a senha do último usuário e sessão (o primeiro login ainda pergunta)
+skip_selection = true
+
 [background]
 # papel de parede do tema atual (copiado pelo theme-set)
 path = "/var/lib/theme-set/background"
