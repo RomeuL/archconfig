@@ -42,12 +42,31 @@ Etapas: `packages shell dotfiles system services flatpak dark-mode theme firefox
 O script pode ser rodado de novo sem problemas. Tudo que ele substitui vai antes para
 `~/.config-backup/archconfig-<data>/`.
 
-## Atualizar o repositório com as configs desta máquina
+## Sincronizar entre PCs
+
+No PC onde mudou alguma config, guarde no repositório:
 
 ```sh
-./sync.sh          # copia $HOME e /etc para o repositório
+./save.sh          # copia $HOME e /etc para o repositório
 git add -A && git commit -m "Atualiza configs" && git push
 ```
+
+Nos outros, traga e aplique:
+
+```sh
+./sync.sh          # git pull + aplica só o que mudou desde a última sincronização
+```
+
+O `sync.sh` mexe só nos dotfiles que mudaram no repositório (os outros ficam como estão),
+instala os pacotes que entraram nas listas e roda as etapas do `install.sh` que forem
+precisas (tela de login, temas, Firefox, Code OSS); no fim, recarrega o tema e os apps.
+Se um dotfile também foi mudado no PC, as duas mudanças são juntadas; se mexerem nas mesmas
+linhas, fica a do repositório. Nos dois casos a versão do PC vai antes para
+`~/.config-backup/`. Pacotes que saíram das listas não são desinstalados, só avisados.
+
+Ele lembra do último commit aplicado (em `~/.local/state/archconfig/applied`). Também
+funciona depois de um `git pull` feito à mão, e `./sync.sh --since <commit>` reaplica tudo
+desde um commit.
 
 ## O que tem aqui
 

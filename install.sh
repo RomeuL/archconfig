@@ -10,11 +10,14 @@
 #
 # Pode ser rodado de novo sem problemas: pacotes já instalados são pulados e todo arquivo
 # substituído vai antes para ~/.config-backup/archconfig-<data>/.
+#
+# Depois da instalação, para trazer as mudanças do GitHub: ./sync.sh
 set -euo pipefail
 
-REPO="$(cd "$(dirname "$0")" && pwd)"
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP="$HOME/.config-backup/archconfig-$STAMP"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/archconfig/applied"   # último commit aplicado aqui
 NOTES=()   # tarefas manuais mostradas no final
 
 say()  { printf '\n\033[1;31m==>\033[0m \033[1m%s\033[0m\n' "$*"; }
@@ -22,6 +25,13 @@ info() { printf '    %s\n' "$*"; }
 note() { NOTES+=("$*"); }
 
 list() { grep -vE '^\s*(#|$)' "$1"; }   # linhas de um arquivo de lista, sem comentários
+
+mark_applied() {  # o ./sync.sh aplica só o que mudar no repositório depois deste commit
+    local head
+    head="$(git -C "$REPO" rev-parse HEAD 2>/dev/null)" || return 0
+    mkdir -p "$(dirname "$STATE")"
+    echo "$head" > "$STATE"
+}
 
 cpu_vendor() {
     case "$(grep -m1 '^vendor_id' /proc/cpuinfo)" in
@@ -230,6 +240,9 @@ PY
 
 ALL=(packages shell dotfiles system services flatpak dark-mode theme firefox code-theme)
 
+# O sync.sh carrega este arquivo (source) só para usar as etapas
+[ "${BASH_SOURCE[0]}" = "$0" ] || return 0
+
 [ "$(id -u)" -eq 0 ] && { echo "Rode como seu usuário (sem sudo); o script pede a senha quando precisar."; exit 1; }
 [ -f /etc/arch-release ] || { echo "Este script é para Arch Linux."; exit 1; }
 command -v sudo >/dev/null || { echo "Falta o sudo: no archinstall, marque seu usuário como superuser."; exit 1; }
@@ -250,5 +263,6 @@ if [ "$#" -eq 0 ]; then
     note "Instale o Claude Code: curl -fsSL https://claude.ai/install.sh | bash"
     note "Faça login: gh auth login · codex · sudo tailscale up"
     note "Reinicie o computador para entrar pela nova tela de login (greetd)."
+    mark_applied
 fi
 for n in "${NOTES[@]}"; do printf '  • %s\n' "$n"; done
