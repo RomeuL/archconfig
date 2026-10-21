@@ -1,21 +1,60 @@
 -- Workspaces por monitor:
---   1-5  sempre no monitor do notebook
+--   1-5  sempre no monitor principal, mesmo vazios: a tela do notebook ou, num PC
+--        de mesa (sem a saída eDP-1), o primeiro monitor conectado
 --   z, x sempre no monitor externo (criados quando ele é conectado)
--- Sem monitor externo, z e x vão para o notebook e só continuam existindo
+-- Sem monitor externo, z e x vão para o principal e só continuam existindo
 -- enquanto tiverem janelas abertas.
 
 local laptop             = "eDP-1"
 local externalWorkspaces = { "z", "x" }
 
-for i = 1, 5 do
-    hl.workspace_rule({ workspace = tostring(i), monitor = laptop, default = (i == 1) })
+-- A saída do notebook existe mesmo com a tela desligada; num PC de mesa, não
+local function hasLaptopScreen()
+    for card = 0, 9 do
+        local f = io.open("/sys/class/drm/card" .. card .. "-" .. laptop .. "/status")
+        if f then
+            f:close()
+            return true
+        end
+    end
+    return false
 end
 
+local isLaptop = hasLaptopScreen()
+
+-- Persistentes: o Hyprland mantém 1-5 abertos e o Waybar mostra todos
+local function mainRule(i, monitor)
+    return hl.workspace_rule({
+        workspace  = tostring(i),
+        monitor    = monitor,
+        persistent = true,
+        default    = (i == 1),
+    })
+end
+
+-- No notebook as regras de 1-5 são fixas; no PC de mesa seguem o monitor principal (attachMain)
+if isLaptop then
+    for i = 1, 5 do
+        mainRule(i, laptop)
+    end
+end
+
+local mainRules     = {}
 local externalRules = {}
 
-local function findExternal()
+local function findMain()
+    if isLaptop then return laptop end
     for _, m in ipairs(hl.get_monitors()) do
-        if m.name ~= laptop and not m.is_mirror then
+        if not m.is_mirror then
+            return m.name
+        end
+    end
+end
+
+local function findExternal()
+    local main = findMain()
+    for _, m in ipairs(hl.get_monitors()) do
+        if m.name ~= main and not m.is_mirror then
             return m.name
         end
     end
@@ -60,6 +99,20 @@ local function placeExternalWorkspaces(monitor)
     end
 end
 
+-- No PC de mesa, prende 1-5 ao monitor principal (ou solta, se monitor == nil)
+local function attachMain(monitor)
+    for _, rule in ipairs(mainRules) do
+        rule:set_enabled(false)
+    end
+    mainRules = {}
+
+    if not monitor then return end
+
+    for i = 1, 5 do
+        mainRules[#mainRules + 1] = mainRule(i, monitor)
+    end
+end
+
 -- Prende z e x ao monitor externo (ou solta, se monitor == nil)
 local function attachExternal(monitor)
     for _, rule in ipairs(externalRules) do
@@ -82,10 +135,15 @@ local function attachExternal(monitor)
     hl.timer(function () placeExternalWorkspaces(monitor) end, { timeout = 200, type = "oneshot" })
 end
 
-attachExternal(findExternal())
+local function attachAll()
+    if not isLaptop then attachMain(findMain()) end
+    attachExternal(findExternal())
+end
+
+attachAll()
 
 -- Pequeno atraso: o Hyprland só define o workspace inicial do monitor depois do evento
 hl.on("monitor.added", function ()
-    hl.timer(function () attachExternal(findExternal()) end, { timeout = 200, type = "oneshot" })
+    hl.timer(attachAll, { timeout = 200, type = "oneshot" })
 end)
-hl.on("monitor.removed", function () attachExternal(findExternal()) end)
+hl.on("monitor.removed", attachAll)

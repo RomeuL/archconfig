@@ -30,6 +30,7 @@ pipewire
 pipewire-alsa
 pipewire-pulse
 wireplumber
+rtkit
 pavucontrol
 bluez
 bluez-utils

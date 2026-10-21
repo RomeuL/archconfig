@@ -79,8 +79,9 @@ do PC novo durante a instalação.
 ## Observações
 
 - **Monitores:** as regras do `hyprland.lua` usam a tela do notebook (`eDP-1`) e dois monitores
-  externos identificados pelo modelo. Num PC de mesa, ajuste a seção de monitores e o
-  `~/.config/hypr/workspaces.lua` (que fixa os workspaces 1–5 no `eDP-1`).
+  externos identificados pelo modelo. Os workspaces 1–5 ficam no `eDP-1`; num PC de mesa (sem
+  essa saída), o `~/.config/hypr/workspaces.lua` os põe no primeiro monitor conectado, e só a
+  seção de monitores pode precisar de ajuste.
 - **Fora do pacman:** Claude Code (instalador oficial), TeamSpeak 6 (tar.xz do site) e
   LocalSend (Flatpak, instalado pelo script).
 - **Sem segredos:** tokens, senhas, `.git-credentials` e `.env` nunca entram no repositório.

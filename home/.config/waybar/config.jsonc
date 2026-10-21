@@ -21,8 +21,7 @@
             "default": "·"
         },
         "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e+1\" })'",
-        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e-1\" })'",
-        "persistent-workspaces": { "eDP-1": [1, 2, 3, 4, 5] }
+        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e-1\" })'"
     },
     // Status do Claude Code e do Codex: um único agents.py (daemon) grava o estado e cada módulo só faz tail -F
     "custom/codex": {
@@ -89,7 +88,7 @@
     },
     "network": {
         "format-wifi": "󰖩",
-        "format-ethernet": "󰈀 {ipaddr}",
+        "format-ethernet": "󰈀",
         "format-disconnected": "󰖪 offline",
         "tooltip-format": "{essid}\n{ifname}: {ipaddr}/{cidr}\nSinal: {signalStrength}%",
         "on-click": "ghostty -e nmtui"
