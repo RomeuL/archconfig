@@ -85,6 +85,9 @@ docker-compose
 docker-buildx
 postgresql-libs
 openai-codex
+dbeaver
+# Java do DBeaver: só o runtime (sem ele, o pacman escolheria o JDK completo)
+jre-openjdk
 
 # Rede
 tailscale

@@ -166,7 +166,7 @@ viram o `accent`, o `accent` e o `yellow`.
   externos identificados pelo modelo. Os workspaces 1–5 ficam no `eDP-1`; num PC de mesa (sem
   essa saída), o `~/.config/hypr/workspaces.lua` os põe no primeiro monitor conectado, e só a
   seção de monitores pode precisar de ajuste.
-- **Fora do pacman:** Claude Code (instalador oficial), TeamSpeak 6 (tar.xz do site) e
-  LocalSend (Flatpak, instalado pelo script).
+- **Fora do pacman:** Claude Code (instalador oficial), TeamSpeak 6 (tar.xz do site),
+  LocalSend e Insomnia (Flatpak, instalados pelo script).
 - **Sem segredos:** tokens, senhas, `.git-credentials` e `.env` nunca entram no repositório.
   Depois de clonar, faça os logins de novo (`gh auth login`, Forgejo, Codex, Tailscale).
