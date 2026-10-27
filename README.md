@@ -96,6 +96,8 @@ do PC novo durante a instalação.
 | SUPER+Esc | menu de energia (bloquear, suspender, reiniciar, desligar, sair) |
 | SUPER+SHIFT+T | troca o tema do sistema |
 | Print / SHIFT+Print / SUPER+Print | captura de área / tela / janela |
+| SUPER+SHIFT+S | captura de área direto para a área de transferência |
+| SUPER+S / SUPER+ALT+S | mostra o workspace escondido (scratchpad) / manda a janela para ele |
 
 ## Temas
 

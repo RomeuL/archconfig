@@ -307,6 +307,8 @@ local screenshot = "hyprshot -o ~/Pictures/Screenshots"
 hl.bind("Print",               hl.dsp.exec_cmd(screenshot .. " -m region"))
 hl.bind("SHIFT + Print",       hl.dsp.exec_cmd(screenshot .. " -m output -m active"))
 hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd(screenshot .. " -m window"))
+-- Área selecionada direto para a área de transferência, sem salvar (como o Cmd+Shift+4 do Mac)
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("hyprshot -m region --clipboard-only --silent"))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 
 -- Move focus with mainMod + arrow keys
@@ -343,7 +345,8 @@ end
 
 -- Example special workspace (scratchpad)
 hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
+-- (SUPER+SHIFT+S é a captura de tela)
+hl.bind(mainMod .. " + ALT + S",   hl.dsp.window.move({ workspace = "special:magic" }))
 
 -- Scroll through existing workspaces with mainMod + scroll
 hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
