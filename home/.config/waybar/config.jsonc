@@ -40,7 +40,7 @@
         "format": "⌨ {short}"
     },
     "clock": {
-        "format": "{:%H:%M}",
+        "format": "{:%d/%m/%Y  %H:%M}",
         "format-alt": "{:%A, %d de %B de %Y  %H:%M}",
         "locale": "pt_BR.UTF-8",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
