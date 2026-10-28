@@ -78,7 +78,7 @@ local editor      = "code"
 hl.on("hyprland.start", function ()
     hl.exec_cmd("waybar")
     hl.exec_cmd("hyprpaper")
-    hl.exec_cmd("hypridle")
+    hl.exec_cmd("~/.local/bin/arch-lock start-idle")
     hl.exec_cmd("swaync")  -- notificações: nunca aparecem sozinhas, ficam no sino da Waybar
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
 end)

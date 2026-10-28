@@ -90,13 +90,14 @@ step_dotfiles() {
         { grep -rlI --null '__HOME__' "$dst" 2>/dev/null || true; } | xargs -0 -r sed -i "s|__HOME__|$HOME|g"
         info "$path"
     done < <(list "$REPO/dotfiles.txt")
-    chmod +x "$HOME"/.local/bin/pkg-* "$HOME"/.local/bin/theme-* "$HOME"/.local/bin/power-menu "$HOME"/.claude/statusline.py "$HOME"/.claude/hooks/*.sh \
+    chmod +x "$HOME"/.local/bin/pkg-* "$HOME"/.local/bin/theme-* "$HOME"/.local/bin/power-menu "$HOME"/.local/bin/arch-lock "$HOME"/.claude/statusline.py "$HOME"/.claude/hooks/*.sh \
              "$HOME"/.config/hypr/scripts/*.sh "$HOME"/.config/waybar/scripts/*.py 2>/dev/null || true
     # As configs importam as cores de ~/.config/theme/current: gera se ainda não existir
     if [ ! -f "$HOME/.config/theme/current/theme" ]; then
         "$HOME/.local/bin/theme-set" cyber-arch && info "tema Cyber Arch gerado"
     fi
     if [ -d "$BACKUP" ]; then info "Arquivos antigos guardados em $BACKUP"; fi
+    note "Bloqueio animado: veja com arch-lock preview; ative e teste com arch-lock enable && arch-lock. Até ativar, o bloqueio usa Hyprlock."
 }
 
 step_system() {

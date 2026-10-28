@@ -247,6 +247,13 @@ main() {
             note "O theme-set --refresh falhou (veja a mensagem acima)."
         fi
         if changed home/.config/swaync; then swaync-client --reload-config >/dev/null 2>&1 || true; fi
+        if changed home/.config/hypr/hypridle.conf; then
+            if "$HOME/.local/bin/arch-lock" reload-idle; then
+                info "hypridle recarregado com os novos tempos de bloqueio e energia"
+            else
+                note "Não foi possível recarregar o hypridle. Saia e entre novamente na sessão."
+            fi
+        fi
     fi
 
     if [ "${#gone[@]}" -gt 0 ]; then mapfile -t gone < <(pacman -Qq "${gone[@]}" 2>/dev/null || true); fi

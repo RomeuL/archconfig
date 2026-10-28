@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# Bloqueio animado do archconfig. Sem ativação explícita ou sem Quickshell, usa Hyprlock.
+set -euo pipefail
+umask 077
+
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/arch-lock"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/arch-lock"
+BATTERY="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/scripts/on-battery.sh"
+QS="$(command -v quickshell || command -v qs || true)"
+
+ipc() {
+    [ -n "$QS" ] || return 1
+    timeout 2 "$QS" -p "$CONFIG/shell.qml" ipc call locker "$@" 2>/dev/null
+}
+
+fallback() {
+    if pgrep -u "$(id -u)" -x hyprlock >/dev/null; then return 0; fi
+    exec hyprlock
+}
+
+check() {
+    [ -n "$QS" ] || {
+        echo 'Quickshell não instalado. No terminal: sudo pacman -Syu --needed quickshell upower' >&2
+        return 1
+    }
+    [ -r /etc/pam.d/hyprlock ] || { echo 'Falta a política PAM do Hyprlock.' >&2; return 1; }
+    local required
+    for required in shell.qml LockView.qml AnimationCanvas.qml ThemeScenes.js AuthController.qml settings.json; do
+        [ -r "$CONFIG/$required" ] || { echo "Falta $CONFIG/$required" >&2; return 1; }
+    done
+    "$QS" --version
+}
+
+reload_idle() {
+    systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE
+    # Stop an instance launched directly by an older Hyprland config as well.
+    pkill -u "$(id -u)" -x hypridle 2>/dev/null || true
+    systemctl --user restart hypridle.service
+}
+
+case "${1:-lock}" in
+    preview)
+        # A normal Qt window: separate entrypoint, no session lock, no PAM, no real passwords.
+        theme_dir="${XDG_CONFIG_HOME:-$HOME/.config}/theme/current"
+        preview_theme=()
+        if [ -n "${2:-}" ]; then
+            theme_name="$2"
+            [[ "$theme_name" =~ ^[a-z0-9-]+$ ]] || { echo 'Nome de tema inválido.' >&2; exit 2; }
+            palette_file="${XDG_CONFIG_HOME:-$HOME/.config}/theme/themes/$theme_name/colors.toml"
+            [ -r "$palette_file" ] || { echo "Tema não encontrado: $theme_name" >&2; exit 1; }
+            palette="$(python - "$palette_file" "$theme_name" <<'PY'
+import json, sys, tomllib
+from pathlib import Path
+data = tomllib.loads(Path(sys.argv[1]).read_text())
+font = 'monospace'
+for style_file in [Path(sys.argv[1]).parents[2] / 'style.toml', Path(sys.argv[1]).parent / 'style.toml']:
+    if style_file.is_file():
+        font = tomllib.loads(style_file.read_text()).get('font', font)
+print(json.dumps({'theme': sys.argv[2], 'mode': data.get('mode', 'dark'), 'colors': data, 'font': font}))
+PY
+            )"
+            preview_theme=(--theme "$theme_name")
+        else
+            palette="$(cat "$theme_dir/palette.json" 2>/dev/null || printf '{}')"
+        fi
+        font="$(sed -n 's/^\$font[[:space:]]*=[[:space:]]*//p' "$theme_dir/hyprlock.conf" 2>/dev/null || true)"
+        exec /usr/lib/qt6/bin/qml "$CONFIG/preview.qml" -- --palette "$palette" --font "${font:-monospace}" "${preview_theme[@]}"
+        ;;
+    check) check ;;
+    enable)
+        check
+        mkdir -p "$STATE"
+        touch "$STATE/enabled"
+        reload_idle
+        echo 'Bloqueio animado ativado. Teste agora com: arch-lock'
+        ;;
+    disable)
+        rm -f "$STATE/enabled"
+        echo 'Próximos bloqueios usarão Hyprlock. Um bloqueio já aberto continua exigindo a senha.'
+        ;;
+    reload-idle)
+        mkdir -p "$STATE"
+        reload_idle
+        ;;
+    start-idle)
+        systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE
+        exec systemctl --user start hypridle.service
+        ;;
+    status)
+        if [ -f "$STATE/enabled" ]; then
+            ipc status || echo 'Ativado; nenhuma tela animada em execução.'
+        else
+            echo 'Hyprlock (bloqueio animado ainda não ativado).'
+        fi
+        ;;
+    pause|resume) ipc "$1" >/dev/null || true ;;
+    screen-off)
+        "$BATTERY" || exit 0
+        ipc pause >/dev/null || true
+        if ! hyprctl dispatch 'hl.dsp.dpms({action = "off"})'; then
+            ipc resume >/dev/null || true
+            exit 1
+        fi
+        ;;
+    screen-on)
+        hyprctl dispatch 'hl.dsp.dpms({action = "on"})'
+        ipc resume >/dev/null || true
+        ;;
+    lock)
+        [ -n "${XDG_RUNTIME_DIR:-}" ] || { echo 'XDG_RUNTIME_DIR não definido; usando Hyprlock.' >&2; fallback; }
+        exec 9>"$XDG_RUNTIME_DIR/arch-lock.guard"
+        flock -n 9 || exit 0
+        pgrep -u "$(id -u)" -x hyprlock >/dev/null && exit 0
+        [ -f "$STATE/enabled" ] && [ -n "$QS" ] || fallback
+        mkdir -p "$STATE"
+        # Exit 42 is emitted only after PAM succeeds and the compositor lock is released.
+        # All other exits, including load errors and crashes, attempt the existing locker.
+        result=0
+        ulimit -c 0 || true
+        QS_DISABLE_CRASH_HANDLER=1 "$QS" -p "$CONFIG/shell.qml" >>"$STATE/lock.log" 2>&1 || result=$?
+        [ "$result" -eq 42 ] && exit 0
+        echo "Quickshell encerrou sem desbloqueio autenticado (código $result); iniciando Hyprlock." >&2
+        fallback
+        ;;
+    *) echo 'Uso: arch-lock [lock|preview|check|enable|disable|status]' >&2; exit 2 ;;
+esac

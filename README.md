@@ -101,6 +101,85 @@ do PC novo durante a instalação.
 
 ## Temas
 
+### Bloqueio animado
+
+O `hypridle` bloqueia a sessão após **5 minutos**. O bloqueio animado usa Quickshell
+(pacote oficial do Arch), com uma cena própria para cada tema instalado. As cores e a
+fonte também vêm do tema atual. A seleção acompanha a troca de tema. Mover o mouse ou
+pressionar uma tecla mostra a senha; somente a autenticação pelo PAM do Hyprlock libera
+a sessão. A prévia abre uma janela comum e não verifica senhas.
+
+```sh
+sudo pacman -Syu --needed quickshell upower
+arch-lock preview             # ver o visual, sem bloquear
+arch-lock preview tron-arcade # prévia de outro tema sem mudar o desktop
+arch-lock enable              # ativa e recarrega o hypridle
+arch-lock                     # testar o bloqueio e a senha
+```
+
+Na tomada, a tela permanece ligada. Na bateria, as animações usam 12 quadros por segundo,
+a tela apaga aos **10 minutos** de inatividade e o notebook suspende aos **30 minutos**.
+As animações são pausadas quando o hypridle apaga a tela e retomadas quando ela acende.
+Os tempos ficam em `~/.config/hypr/hypridle.conf`; os quadros por segundo e o tempo do
+campo de senha ficam em `~/.config/quickshell/arch-lock/settings.json`.
+
+| Tema | Animação |
+|---|---|
+| Tron Arcade | Arena neon, duas motos com rastros ciano/laranja e disco giratório |
+| Cyber Arch | Distrito cyberpunk com chuva, letreiros neon e drone |
+| Tokyo Night | Cidade noturna, torre iluminada e trem passando |
+| Catppuccin | Café cósmico com gato sonolento e planetas em órbita |
+| Catppuccin Latte | Janela ensolarada, nuvens, planta e café com vapor |
+| Gruvbox | Engrenagens e osciloscópio em tons quentes |
+| Nord | Aurora boreal, montanhas e neve |
+| Rosé Pine | Jardim florido com pétalas ao vento e reflexos na água |
+| Kanagawa | Ondas, espuma, barco e monte ao fundo |
+| Everforest | Floresta em camadas, névoa e vagalumes |
+
+As cenas são desenhadas em `ThemeScenes.js`, sem vídeos ou downloads. Temas desconhecidos
+recebem uma cena de constelações. A superfície de desenho tem altura máxima de 720 pixels
+para limitar o trabalho em telas grandes; textos e senha continuam na resolução da tela.
+A superfície é ampliada para ocupar cada monitor por inteiro, inclusive ultrawide.
+O bloqueio cria uma tela por monitor e acompanha resoluções, escalas e conexão/desconexão
+de monitores. É possível desbloquear em qualquer tela, liberando a sessão inteira.
+
+`arch-lock disable` faz os próximos bloqueios voltarem ao Hyprlock; `arch-lock status`
+mostra o estado. A ativação é local a cada PC e não entra no Git. Sem ativação ou sem
+Quickshell, o Hyprlock continua sendo usado. Erros de inicialização também tentam abrir
+o Hyprlock; os logs ficam em `~/.local/state/arch-lock/lock.log`. Uma falha depois de obter
+o bloqueio pode exigir recuperação pela sessão/TTY; valide senha, monitor externo e retorno
+da suspensão na sua máquina antes de depender deste bloqueio.
+
+O atalho **SUPER+L**, o menu de energia e o bloqueio antes da suspensão continuam passando
+por `loginctl lock-session`, que aciona o comando configurado no hypridle.
+O Hyprland inicia o hypridle pelo serviço de usuário do systemd, para ele continuar
+rodando após fechar o terminal e ser reiniciado em caso de falha.
+
+Validação local (sem bloquear a sessão e sem usar senhas reais):
+
+```sh
+python -m unittest discover -s tests -v
+QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
+    /usr/lib/qt6/bin/qmltestrunner -input tests/qml -o -,txt
+```
+
+Os testes cobrem o controlador com um transporte PAM simulado, os campos da interface,
+as dez cenas (movimento e composições distintas com a mesma paleta) e o lançador com
+comandos simulados. Não substituem a validação da
+autenticação PAM real, do protocolo de bloqueio e da suspensão na sessão gráfica.
+
+Para verificar o renderizador gráfico real em uma sessão isolada, sem bloquear o desktop:
+
+```sh
+python tests/check_lock_displays.py
+```
+
+Esse teste exige uma sessão Wayland e `ffmpeg`. Abre um compositor de teste com ultrawide,
+tela a 150% e monitor vertical; verifica as bordas da animação, redimensionamento e troca
+de monitores durante o bloqueio. As capturas ficam em uma pasta temporária indicada na saída.
+
+### Aparência do sistema
+
 **SUPER+SHIFT+T** (ou "Trocar Tema" no launcher) abre a lista de temas, com a paleta de cada um.
 Trocar de tema muda o papel de parede, o modo claro/escuro e as cores de tudo:
 

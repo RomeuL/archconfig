@@ -5,6 +5,8 @@
 hyprland
 hypridle
 hyprlock
+quickshell
+upower
 hyprpaper
 hyprpolkitagent
 hyprshot
