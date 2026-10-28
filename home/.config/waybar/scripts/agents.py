@@ -6,6 +6,7 @@ Com "focus": foca a próxima janela de agente (usado no clique do módulo).
 Um último argumento "claude" ou "codex" limita a um só agente (um módulo para cada).
 Com "daemon": um único processo para todas as barras; grava o estado de cada agente em
 ~/.cache/agent-status/waybar-<agente>.json e os módulos só fazem `tail -F` desses arquivos.
+Na barra: limite de 5h e contexto da sessão atualizada mais recentemente de cada agente.
 
 O estado vem de duas fontes:
   1. Sessões reais (funciona mesmo com o agente numa aba de trás do terminal):
@@ -292,6 +293,21 @@ def five_hour_used(agent, sessions):
     return (limits.get("primary") or {}).get("used_percent")
 
 
+def context_used(agent, sessions):
+    """% de contexto da sessão mais recente; não soma contextos de sessões distintas."""
+    if not sessions:
+        return None
+    session = sessions[0]
+    if agent == "claude":
+        return (session.get("context_window") or {}).get("used_percentage")
+    info = session.get("info") or {}
+    tokens = (info.get("last_token_usage") or {}).get("total_tokens")
+    size = info.get("model_context_window")
+    if tokens is not None and size and size > 0:
+        return tokens / size * 100
+    return None
+
+
 def detail(text):
     return f"    <span color='{theme('dark_foreground', '#7a7a7a')}'>{text}</span>"
 
@@ -374,7 +390,7 @@ def render(found):
         label = {"idle": "parado", "working": "trabalhando", "blocked": "aguardando você"}[state]
         where = "em outra aba" if ws == "~" else f"[{ws}]"
         per_agent.setdefault(agent, []).append(f"{label} {where}")
-    tips, limits = [], []
+    tips, metrics = [], []
     for agent, usage, tooltip in (("claude", claude_usage, claude_tooltip),
                                   ("codex", codex_usage, codex_tooltip)):
         if agent not in per_agent:
@@ -383,19 +399,25 @@ def render(found):
         if tips:
             tips.append("")
         tips += tooltip(", ".join(per_agent[agent]), sessions)
+        parts = []
         used = five_hour_used(agent, sessions)
-        if used is not None:  # limite de 5h sempre visível ao lado do ícone
-            limits.append(f"<span color='{level_color(used)}'>{used:.0f}%</span>")
+        if used is not None:
+            parts.append(f"5h <span color='{level_color(used)}'>{used:.0f}%</span>")
+        context = context_used(agent, sessions)
+        if context is not None:
+            parts.append(f"ctx <span color='{level_color(context)}'>{context:.0f}%</span>")
+        if parts:
+            metrics.append(" · ".join(parts))
     states = {f[5] for f in found}
     css = "blocked" if "blocked" in states else "working" if "working" in states else "idle"
-    # O ícone fica sempre do lado do relógio: Codex (à esquerda dele) mostra o limite antes do ícone
-    icon_text, limit_text = "  ".join(icons), " ".join(limits)
-    if not limit_text:
+    # Preserva a disposição dos ícones: métricas antes do Codex, depois do Claude.
+    icon_text, metric_text = "  ".join(icons), "  ".join(metrics)
+    if not metric_text:
         text = icon_text
     elif set(per_agent) == {"codex"}:
-        text = f"{limit_text} {icon_text}"
+        text = f"{metric_text} {icon_text}"
     else:
-        text = f"{icon_text} {limit_text}"
+        text = f"{icon_text} {metric_text}"
     return {"text": text, "tooltip": "\n".join(tips), "class": css}
 
 
