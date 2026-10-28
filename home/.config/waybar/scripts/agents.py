@@ -421,6 +421,16 @@ def render(found):
     return {"text": text, "tooltip": "\n".join(tips), "class": css}
 
 
+def render_modules(found):
+    """Cada indicador visível desenha seu fundo; só há divisória se ambos existem."""
+    outputs = {agent: render([f for f in found if f[4] == agent])
+               for agent in ("codex", "claude")}
+    if all(output["text"] for output in outputs.values()):
+        for output in outputs.values():
+            output["class"] = [output["class"], "paired"]
+    return outputs
+
+
 def focus_next(only=None):
     found = agents(only)
     if not found:
@@ -459,8 +469,8 @@ def daemon():
     last = {}
     def emit():
         found = agents()
-        for agent in ("codex", "claude"):
-            line = json.dumps(render([f for f in found if f[4] == agent]), ensure_ascii=False)
+        for agent, output in render_modules(found).items():
+            line = json.dumps(output, ensure_ascii=False)
             if line != last.get(agent):
                 path = os.path.join(STATE_DIR, f"waybar-{agent}.json")
                 with open(path + ".tmp", "w") as f:

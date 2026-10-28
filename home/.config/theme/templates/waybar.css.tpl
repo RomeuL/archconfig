@@ -20,15 +20,12 @@ window#waybar {
 
 .modules-left,
 .modules-center,
-#agents,
 #system {
     background-color: alpha(@background, 0.75);
     border-radius: {{ rounding }}px;
     padding: 0 6px;
 }
 
-#agents { margin-right: 10px; }
-#agents > widget + widget,
 #system > widget + widget { margin-left: 4px; }
 
 tooltip {
@@ -80,11 +77,22 @@ button:hover {
 /* Sino com notificações guardadas */
 #custom-notification.notification, #custom-notification.dnd-notification { color: @alert; }
 
-#custom-codex, #custom-claude { padding: 0 10px; font-size: {{ font_size }}px; }
-#custom-claude:not(.empty) {
+#custom-codex, #custom-claude {
+    background-color: alpha(@background, 0.75);
+    border-radius: {{ rounding }}px;
+    padding: 0 16px;
+    margin-right: 10px;
+    font-size: {{ font_size }}px;
+}
+#custom-codex.paired {
+    border-radius: {{ rounding }}px 0 0 {{ rounding }}px;
+    padding-right: 10px;
+    margin-right: 0;
+}
+#custom-claude.paired {
+    border-radius: 0 {{ rounding }}px {{ rounding }}px 0;
     border-left: 1px solid alpha(@foreground, 0.35);
     padding-left: 14px;
-    margin-left: 4px;
 }
 #custom-codex.working, #custom-claude.working { box-shadow: inset 0 -3px @active; }
 #custom-codex.blocked, #custom-claude.blocked { box-shadow: inset 0 -3px @alert; }

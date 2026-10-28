@@ -73,5 +73,36 @@ class AgentContextTests(unittest.TestCase):
         self.assertEqual(agents.render([]), {"text": "", "class": "empty"})
 
 
+class AgentVisibilityTests(unittest.TestCase):
+    def setUp(self):
+        for name in ("claude_usage", "codex_usage"):
+            mock = patch.object(agents, name, return_value=[])
+            mock.start()
+            self.addCleanup(mock.stop)
+
+    def found(self, *names):
+        return [("1", 0, "address", "", name, "idle", "icon") for name in names]
+
+    def test_closing_last_session_hides_both_modules(self):
+        for output in agents.render_modules([]).values():
+            self.assertEqual(output, {"text": "", "class": "empty"})
+
+    def test_single_agent_has_no_divider_or_hidden_peer(self):
+        for name, other in (("codex", "claude"), ("claude", "codex")):
+            with self.subTest(agent=name):
+                outputs = agents.render_modules(self.found(name))
+                self.assertTrue(outputs[name]["text"])
+                self.assertEqual(outputs[name]["class"], "idle")
+                self.assertEqual(outputs[other], {"text": "", "class": "empty"})
+
+    def test_divider_tracks_opening_and_closing_second_agent(self):
+        outputs = agents.render_modules(self.found("codex", "claude"))
+        for output in outputs.values():
+            self.assertIn("paired", output["class"])
+        outputs = agents.render_modules(self.found("claude"))
+        self.assertEqual(outputs["claude"]["class"], "idle")
+        self.assertEqual(outputs["codex"]["text"], "")
+
+
 if __name__ == "__main__":
     unittest.main()
