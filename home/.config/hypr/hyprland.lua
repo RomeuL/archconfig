@@ -37,11 +37,32 @@ hl.monitor({
     scale    = 1.25,
 })
 
--- Monitor LG ultrawide 2560x1080: fica acima do notebook, centralizado
+-- A saída interna existe no sysfs mesmo quando a tela do notebook está desligada.
+local hasLaptopScreen = false
+for card = 0, 9 do
+    local screen = io.open("/sys/class/drm/card" .. card .. "-eDP-1/status")
+    if screen then
+        screen:close()
+        hasLaptopScreen = true
+        break
+    end
+end
+
+-- No notebook, o LG fica acima da tela interna; no desktop, é a referência fixa.
+-- Isso evita deslocar o ultrawide ao conectar ou mudar a escala de outra tela.
 hl.monitor({
     output   = "desc:LG Electronics LG HDR WFHD 0x00030ABF",
     mode     = "preferred",
-    position = "auto-center-up",
+    position = hasLaptopScreen and "auto-center-up" or "0x0",
+    scale    = 1,
+})
+
+-- Monitor VGA 4:3 pelo adaptador DP-1, sem identificação EDID.
+-- Fica à esquerda, no maior modo anunciado (1024x768 a 60 Hz), sem ampliação.
+hl.monitor({
+    output   = "DP-1",
+    mode     = "highres",
+    position = "auto-left",
     scale    = 1,
 })
 
