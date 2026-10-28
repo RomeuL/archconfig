@@ -1,7 +1,8 @@
 /* Waybar no tema {{ theme_title }} (gerado pelo theme-set a partir de
    ~/.config/theme/templates/waybar.css.tpl; um tema pode trazer o seu próprio waybar.css.tpl).
    Estilo Cyber-Arch, portado de github.com/V1xEr3bus/Cyber-Arch: barra transparente com três
-   "ilhas". Cores: foreground (texto), accent, active (ativo), highlight (hover), alert, good, muted */
+   "ilhas", com os agentes separados dos controles à direita.
+   Cores: foreground (texto), accent, active (ativo), highlight (hover), alert, good, muted */
 @import url("colors.css");
 
 * {
@@ -19,11 +20,16 @@ window#waybar {
 
 .modules-left,
 .modules-center,
-.modules-right {
+#agents,
+#system {
     background-color: alpha(@background, 0.75);
     border-radius: {{ rounding }}px;
     padding: 0 6px;
 }
+
+#agents { margin-right: 10px; }
+#agents > widget + widget,
+#system > widget + widget { margin-left: 4px; }
 
 tooltip {
     background: alpha(@background, 0.92);
@@ -75,6 +81,11 @@ button:hover {
 #custom-notification.notification, #custom-notification.dnd-notification { color: @alert; }
 
 #custom-codex, #custom-claude { padding: 0 10px; font-size: {{ font_size }}px; }
+#custom-claude:not(.empty) {
+    border-left: 1px solid alpha(@foreground, 0.35);
+    padding-left: 14px;
+    margin-left: 4px;
+}
 #custom-codex.working, #custom-claude.working { box-shadow: inset 0 -3px @active; }
 #custom-codex.blocked, #custom-claude.blocked { box-shadow: inset 0 -3px @alert; }
 

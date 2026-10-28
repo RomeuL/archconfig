@@ -17,6 +17,14 @@ window#waybar {
     border-bottom: 2px solid @accent;
 }
 
+/* Agentes em um painel próprio, antes dos controles do sistema. */
+#agents {
+    margin-right: 10px;
+    background-color: alpha(@accent, 0.08);
+    border-left: 2px solid @muted;
+    border-right: 2px solid @muted;
+}
+
 tooltip {
     background: @background;
     border: 2px solid @accent;
@@ -75,6 +83,11 @@ button:hover {
 #custom-notification.notification, #custom-notification.dnd-notification { color: @alert; }
 
 #custom-codex, #custom-claude { padding: 0 10px; }
+#custom-claude:not(.empty) {
+    border-left: 2px solid @muted;
+    padding-left: 14px;
+    margin-left: 4px;
+}
 #custom-codex.working, #custom-claude.working { box-shadow: inset 0 -3px @accent; }
 #custom-codex.blocked, #custom-claude.blocked { box-shadow: inset 0 -3px @alert; }
 

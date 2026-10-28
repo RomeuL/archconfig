@@ -6,8 +6,18 @@
     "position": "top",
 
     "modules-left": ["hyprland/workspaces"],
-    "modules-center": ["custom/codex", "clock", "custom/claude"],
-    "modules-right": ["custom/notification", "custom/screenshot", "tray", "pulseaudio", "backlight", "network", "bluetooth", "cpu", "memory", "power-profiles-daemon", "battery", "custom/power"],
+    "modules-center": ["clock"],
+    "fixed-center": true,
+    "modules-right": ["group/agents", "group/system"],
+
+    "group/agents": {
+        "orientation": "horizontal",
+        "modules": ["custom/codex", "custom/claude"]
+    },
+    "group/system": {
+        "orientation": "horizontal",
+        "modules": ["custom/notification", "custom/screenshot", "tray", "pulseaudio", "backlight", "network", "bluetooth", "cpu", "memory", "power-profiles-daemon", "battery", "custom/power"]
+    },
 
     "hyprland/workspaces": {
         "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e+1\" })'",
